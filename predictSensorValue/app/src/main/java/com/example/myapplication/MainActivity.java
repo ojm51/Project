@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             double gyroZ = event.values[2];
             gx = (float) gyroX;
             gy = (float) gyroY;
-            gy = (float) gyroZ;
+            gz = (float) gyroZ;
 
             dt = (event.timestamp - timestamp) * NS2S;
             timestamp = event.timestamp;
