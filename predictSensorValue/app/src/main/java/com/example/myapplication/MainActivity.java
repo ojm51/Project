@@ -152,9 +152,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 roll = roll + gyroX * dt;
                 yaw = yaw + gyroZ * dt;
 
-                xaxis2.setText("X axis :" + String.format("%.2f", roll));
-                yaxis2.setText("Y axis :" + String.format("%.2f", pitch));
-                zaxis2.setText("Z axis :" + String.format("%.2f", yaw));
+                xaxis2.setText("X axis :" + String.format("%.2f", gx));
+                yaxis2.setText("Y axis :" + String.format("%.2f", gy));
+                zaxis2.setText("Z axis :" + String.format("%.2f", gz));
             }
 
         }
