@@ -239,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
         }
+        num=num+1;
     }
 
     @Override
