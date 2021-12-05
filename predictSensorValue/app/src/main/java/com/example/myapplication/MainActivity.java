@@ -240,7 +240,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                textView.setText(activities[activity]);
+                if(max<0.5) {
+                    textView.setText("anomal");
+                }
+                else
+                {
+                    textView.setText(activities[activity]);
+                }
             }
         }
         num = num + 1;
