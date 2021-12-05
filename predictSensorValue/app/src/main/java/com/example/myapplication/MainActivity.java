@@ -242,8 +242,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 textView.setText(activities[activity]);
             }
-            num = num + 1;
         }
+        num = num + 1;
     }
 
     @Override
