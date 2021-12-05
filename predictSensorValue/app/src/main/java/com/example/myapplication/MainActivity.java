@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView textView;
 
-    static final int SMS_SEND_PERMISSON=1;
+    static final int SMS_SEND_PERMISSION=1;
 
     private GpsTracker gpsTracker;
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 // 이곳에 권한이 왜 필요한지 설명하는 Toast나 dialog를 띄워준 후, 다시 권한을 요청한다.
                 Toast.makeText(getApplicationContext(), "SMS 권한이 필요합니다", Toast.LENGTH_SHORT).show();
             }
-            ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.SEND_SMS}, SMS_SEND_PERMISSON);
+            ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.SEND_SMS}, SMS_SEND_PERMISSION);
         }
     }
 
