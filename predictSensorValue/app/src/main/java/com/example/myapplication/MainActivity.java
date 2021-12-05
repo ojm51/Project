@@ -179,13 +179,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor == linearSensor&&num>160) {
+        if (event.sensor == linearSensor && num > 160) {
             ax = event.values[0];
             ay = event.values[1];
             az = event.values[2];
         }
 
-        if (event.sensor == gyroSensor&&num>160) {
+        if (event.sensor == gyroSensor && num > 160) {
             double gyroX = event.values[0];
             double gyroY = event.values[1];
             double gyroZ = event.values[2];
@@ -222,24 +222,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gxmin = gxque.min();
                 gymin = gyque.min();
                 gzmin = gzque.min();
-                CVA= (float)Math.sqrt(Math.pow(ax,2)+Math.pow(ay,2)+Math.pow(az,2));
+                CVA = (float) Math.sqrt(Math.pow(ax, 2) + Math.pow(ay, 2) + Math.pow(az, 2));
 
                 float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
-                float[][][] output = new float[][][]{{{0}}};
+                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
 
-//                Interpreter tflite = getTfliteInterpreter("tflite_model_211108.tflite");
-//                tflite.run(input, output);
-//
-//                float activity = (float)0.5;
-//                if (output[0][0][0] < activity){
-                    textView.setText("0");
-//                }
-//                else{
-//                }
+                Interpreter tflite = getTfliteInterpreter("tensorModel_211205.tflite");
+                tflite.run(input, output);
+
+                float max = output[0][0][0];
+                int activity = (int) 0;
+                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown"};
+
+                for (int i = 0; i < output[0][0].length; i++) {
+                    if (output[0][0][i] > max) {
+                        max = output[0][0][i];
+                        activity = i;
+                    }
+                }
+                textView.setText(activities[activity]);
             }
-
+            num = num + 1;
         }
-        num=num+1;
     }
 
     @Override
