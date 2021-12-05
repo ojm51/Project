@@ -15,67 +15,6 @@
         tools:layout_editor_absoluteX="106dp"
         tools:layout_editor_absoluteY="13dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Acc"
-            android:textSize="40dp"/>
-
-        <TextView
-            android:id="@+id/xaxis"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25dp"
-            android:text=" X axis : 0"/>
-
-        <TextView
-            android:id="@+id/yaxis"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25dp"
-            android:text=" Y axis : 0"/>
-
-        <TextView
-            android:id="@+id/zaxis"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25dp"
-            android:text=" Z axis : 0"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gyro"
-            android:textSize="40dp"/>
-
-        <TextView
-            android:id="@+id/xaxis2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:textSize="25dp"
-            android:text=" X axis : 0"/>
-
-        <TextView
-            android:id="@+id/yaxis2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25dp"
-            android:text=" Y axis : 0"/>
-
-        <TextView
-            android:id="@+id/zaxis2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25dp"
-            android:text=" Z axis : 0"/>
-
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Get activity" />
 
         <TextView
             android:id="@+id/result"

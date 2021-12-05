@@ -42,26 +42,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager mSensorManger;
     private Sensor linearSensor;
     private Sensor gyroSensor;
+    private Queue axque;
+    private Queue ayque;
+    private Queue azque;
+    private Queue gxque;
+    private Queue gyque;
+    private Queue gzque;
 
-    private double roll;
-    private double pitch;
-    private double yaw;
+    private int num = 0;
 
-    private double timestamp=0.0;
-    private double dt;
-
-    private double rad_to_dgr=180/Math.PI;
-    private static final float NS2S=1.0f/1000000000.0f;
-
-    TextView textView;
-    Button button;
-    TextView xaxis, yaxis, zaxis, xaxis2, yaxis2, zaxis2;
-    float x = (float) 0.0;
-    float y = (float) 0.0;
-    float z = (float) 0.0;
+    float ax = (float) 0.0;
+    float ay = (float) 0.0;
+    float az = (float) 0.0;
     float gx = (float) 0.0;
     float gy = (float) 0.0;
     float gz = (float) 0.0;
+    float axmax = (float) 0.0;
+    float axmin = (float) 0.0;
+    float aymax = (float) 0.0;
+    float aymin = (float) 0.0;
+    float azmax = (float) 0.0;
+    float azmin = (float) 0.0;
+    float gxmax = (float) 0.0;
+    float gxmin = (float) 0.0;
+    float gymax = (float) 0.0;
+    float gymin = (float) 0.0;
+    float gzmax = (float) 0.0;
+    float gzmin = (float) 0.0;
+    float CVA = (float) 0.0;
+
+    TextView textView;
 
     private GpsTracker gpsTracker;
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
@@ -75,42 +85,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        axque=new Queue();
+        ayque=new Queue();
+        azque=new Queue();
+        gxque=new Queue();
+        gyque=new Queue();
+        gzque=new Queue();
+
         textView = (TextView) findViewById(R.id.result);
-        xaxis=(TextView)findViewById(R.id.xaxis);
-        yaxis=(TextView)findViewById(R.id.yaxis);
-        zaxis=(TextView)findViewById(R.id.zaxis);
-        xaxis2=(TextView)findViewById(R.id.xaxis2);
-        yaxis2=(TextView)findViewById(R.id.yaxis2);
-        zaxis2=(TextView)findViewById(R.id.zaxis2);
-        button = (Button)findViewById(R.id.button);
 
         mSensorManger=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
         linearSensor = mSensorManger.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         gyroSensor=mSensorManger.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                float cva = (float)Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-                try {
-                    float[][][] input = new float[][][]{{{x,y,z,gx,gy,gz}}};
-                    float[][][] output = new float[][][]{{{0}}};
-
-                    Interpreter tflite = getTfliteInterpreter("tflite_model_211108.tflite");
-                    tflite.run(input, output);
-
-                    float activity = (float)0.5;
-                    if (output[0][0][0] < activity){
-                        textView.setText("The activity is walking");
-                    }
-                    else{
-                        textView.setText("The activity is running");
-                    }
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        });
 
 
 // ------------------------------------------- 주소값 읽어오기 ----------------------------------------------------
@@ -181,15 +167,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor == linearSensor) {
-            xaxis.setText("X axis :" + String.format("%.2f", event.values[0]));
-            x = event.values[0];
-            yaxis.setText("Y axis :" + String.format("%.2f", event.values[1]));
-            y = event.values[1];
-            zaxis.setText("Z axis :" + String.format("%.2f", event.values[2]));
-            z = event.values[2];
+        if (event.sensor == linearSensor&&num>160) {
+            ax = event.values[0];
+            ay = event.values[1];
+            az = event.values[2];
         }
-        if (event.sensor == gyroSensor) {
+
+        if (event.sensor == gyroSensor&&num>160) {
             double gyroX = event.values[0];
             double gyroY = event.values[1];
             double gyroZ = event.values[2];
@@ -197,17 +181,49 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gy = (float) gyroY;
             gz = (float) gyroZ;
 
-            dt = (event.timestamp - timestamp) * NS2S;
-            timestamp = event.timestamp;
+            axque.enqueue(ax);
+            ayque.enqueue(ay);
+            azque.enqueue(az);
+            gxque.enqueue(gx);
+            gyque.enqueue(gy);
+            gzque.enqueue(gz);
 
-            if (dt - timestamp * NS2S != 0) {
-                pitch = pitch + gyroY * dt;
-                roll = roll + gyroX * dt;
-                yaw = yaw + gyroZ * dt;
+            if (axque.size() > 40) {
+                axque.dequeue();
+                ayque.dequeue();
+                azque.dequeue();
+                gxque.dequeue();
+                gyque.dequeue();
+                gzque.dequeue();
+            }
 
-                xaxis2.setText("X axis :" + String.format("%.2f", gx));
-                yaxis2.setText("Y axis :" + String.format("%.2f", gy));
-                zaxis2.setText("Z axis :" + String.format("%.2f", gz));
+            if (axque.size() == 40) {
+                axmax = axque.max();
+                aymax = ayque.max();
+                azmax = azque.max();
+                axmin = axque.min();
+                aymin = ayque.min();
+                azmin = azque.min();
+                gxmax = gxque.max();
+                gymax = gyque.max();
+                gzmax = gzque.max();
+                gxmin = gxque.min();
+                gymin = gyque.min();
+                gzmin = gzque.min();
+                CVA= (float)Math.sqrt(Math.pow(ax,2)+Math.pow(ay,2)+Math.pow(az,2));
+
+                float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
+                float[][][] output = new float[][][]{{{0}}};
+
+//                Interpreter tflite = getTfliteInterpreter("tflite_model_211108.tflite");
+//                tflite.run(input, output);
+//
+//                float activity = (float)0.5;
+//                if (output[0][0][0] < activity){
+                    textView.setText("0");
+//                }
+//                else{
+//                }
             }
 
         }
