@@ -48,6 +48,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Queue gxque;
     private Queue gyque;
     private Queue gzque;
+    private KalmanFilter mKalmanAccX;
+    private KalmanFilter mKalmanAccY;
+    private KalmanFilter mKalmanAccZ;
+    private KalmanFilter mKalmanGyroX;
+    private KalmanFilter mKalmanGyroY;
+    private KalmanFilter mKalmanGyroZ;
 
     private int num = 0;
 
@@ -57,6 +63,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float gx = (float) 0.0;
     float gy = (float) 0.0;
     float gz = (float) 0.0;
+    float Kalax = (float) 0.0;
+    float Kalay = (float) 0.0;
+    float Kalaz = (float) 0.0;
+    float Kalgx = (float) 0.0;
+    float Kalgy = (float) 0.0;
+    float Kalgz = (float) 0.0;
     float axmax = (float) 0.0;
     float axmin = (float) 0.0;
     float aymax = (float) 0.0;
@@ -86,6 +98,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mKalmanAccX=new KalmanFilter(0.0f);
+        mKalmanAccY=new KalmanFilter(0.0f);
+        mKalmanAccZ=new KalmanFilter(0.0f);
+        mKalmanGyroX=new KalmanFilter(0.0f);
+        mKalmanGyroY=new KalmanFilter(0.0f);
+        mKalmanGyroZ=new KalmanFilter(0.0f);
 
         axque=new Queue();
         ayque=new Queue();
@@ -183,6 +202,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ax = event.values[0];
             ay = event.values[1];
             az = event.values[2];
+
+            Kalax=(float)mKalmanAccX.update(ax);
+            Kalay=(float)mKalmanAccX.update(ay);
+            Kalaz=(float)mKalmanAccX.update(az);
         }
 
         if (event.sensor == gyroSensor && num > 160) {
@@ -192,6 +215,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gx = (float) gyroX;
             gy = (float) gyroY;
             gz = (float) gyroZ;
+
+            Kalgx=(float)mKalmanAccX.update(gx);
+            Kalgy=(float)mKalmanAccX.update(gy);
+            Kalgz=(float)mKalmanAccX.update(gz);
 
             axque.enqueue(ax);
             ayque.enqueue(ay);
@@ -222,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gxmin = gxque.min();
                 gymin = gyque.min();
                 gzmin = gzque.min();
-                CVA = (float) Math.sqrt(Math.pow(ax, 2) + Math.pow(ay, 2) + Math.pow(az, 2));
+                CVA = (float) Math.sqrt(Math.pow(Kalax, 2) + Math.pow(Kalay, 2) + Math.pow(Kalaz, 2));
 
                 float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
                 float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
