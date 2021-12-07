@@ -204,8 +204,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             az = event.values[2];
 
             Kalax=(float)mKalmanAccX.update(ax);
-            Kalay=(float)mKalmanAccX.update(ay);
-            Kalaz=(float)mKalmanAccX.update(az);
+            Kalay=(float)mKalmanAccY.update(ay);
+            Kalaz=(float)mKalmanAccZ.update(az);
         }
 
         if (event.sensor == gyroSensor && num > 160) {
@@ -216,9 +216,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gy = (float) gyroY;
             gz = (float) gyroZ;
 
-            Kalgx=(float)mKalmanAccX.update(gx);
-            Kalgy=(float)mKalmanAccX.update(gy);
-            Kalgz=(float)mKalmanAccX.update(gz);
+            Kalgx=(float)mKalmanGyroX.update(gx);
+            Kalgy=(float)mKalmanGyroY.update(gy);
+            Kalgz=(float)mKalmanGyroZ.update(gz);
 
             axque.enqueue(ax);
             ayque.enqueue(ay);
