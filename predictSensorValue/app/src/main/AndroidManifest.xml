@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.myapplication">
-
+    package="com.example.myapplication"> <!-- 파이어베이스 충돌 방지용 -->
+    <uses-sdk tools:overrideLibrary="com.google.firebase.firestore" />
     <!-- 위치 관련 퍼미션 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- 문자 관련 퍼미션 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- 문자 관련 퍼미션 -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
-    <!-- 파이어베이스 충돌 방지용 -->
-    <uses-sdk tools:overrideLibrary="com.google.firebase.firestore" />
 
     <application
         android:allowBackup="true"
@@ -23,6 +18,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyADbtL13CuQE8OjG1KfDVMitywQGKvDlNc" />
+
+        <activity
+            android:name=".Home"
+            android:exported="false"
+            android:label="@string/title_activity_home" />
         <activity
             android:name=".IntroActivity"
             android:exported="true">
@@ -33,6 +37,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
+
     </application>
 
 </manifest>

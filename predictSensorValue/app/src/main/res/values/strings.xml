@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="title_activity_home">Home</string>
+    <string name="title_detection">Detection</string>
+    <string name="title_home">Home</string>
+    <string name="title_info">Info</string>
 </resources>
