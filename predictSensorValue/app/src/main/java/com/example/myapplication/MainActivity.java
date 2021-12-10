@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,9 +22,11 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -92,7 +95,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
 
-
+    private Dialog dialog;
+    private Handler dHandler;
 // ----------------------------------------------------- 센서값 읽어오기 -------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +161,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 // -----------------------------------------------------------------------------------------------------------
 
+
+        dialog=new Dialog(MainActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog);
+        dHandler=new Handler();
     }
 
 
@@ -269,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 if(max<0.5) {
                     textView.setText("anomal");
+                    showDialog();
                 }
                 else
                 {
@@ -278,6 +288,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         num = num + 1;
     }
+
+    //Dialog popup
+    public  void showDialog(){
+        dialog.show();
+
+        // 아니오 버튼
+        Button noBtn = dialog.findViewById(R.id.noBtn);
+        noBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 원하는 기능 구현
+                dialog.dismiss(); // 다이얼로그 닫기
+            }
+        });
+        // 네 버튼
+        dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 원하는 기능 구현
+                finish();           // 앱 종료
+            }
+        });
+
+        dHandler.postDelayed(dRunnable, 5000);
+    }
+
+    //Dialog delay
+    private Runnable dRunnable=new Runnable() {
+        @Override
+        public void run() {
+            dialog.dismiss();
+        }
+    };
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
