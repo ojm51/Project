@@ -88,20 +88,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView textView;
 
-    static final int SMS_SEND_PERMISSION=1;
+    int hasSMSPermission;
+    int hasFineLocationPermission;
+    int hasCoarseLocationPermission;
 
-    private GpsTracker gpsTracker;
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SEND_SMS};
+
+    private GpsTracker gpsTracker;
 
     private Dialog dialog;
     private Handler dHandler;
-// ----------------------------------------------------- 센서값 읽어오기 -------------------------------------------------------
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 퍼미션을 가지고 있는지 체크함
+        hasSMSPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
+        hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+        hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         mKalmanAccX=new KalmanFilter(0.0f);
         mKalmanAccY=new KalmanFilter(0.0f);
@@ -117,14 +125,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyque=new Queue();
         gzque=new Queue();
 
+        // 행동 예측 결과
         textView = (TextView) findViewById(R.id.result);
 
         mSensorManger=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
         linearSensor = mSensorManger.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         gyroSensor=mSensorManger.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-
-// ------------------------------------------- 주소값 읽어오기 ----------------------------------------------------
+        // 주소값 읽어오기
         if (!checkLocationServicesStatus()) {
             showDialogForLocationServiceSetting();
         } else {
@@ -144,24 +152,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 String address = getCurrentAddress(latitude, longitude);
                 textAddress.setText(address);
 
-//                Toast.makeText(MainActivity.this, "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_SHORT).show();
-
-                checkSmsPermission();   // SMS 권한 확인
                 String phoneNumber = "여기에 -없이 전화번호 입력";
 
                 try {
                     SmsManager smsManager = SmsManager.getDefault();
                     smsManager.sendTextMessage(phoneNumber, null, address, null, null);
-                    Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "메시지 전송 실패...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }
         });
-// -----------------------------------------------------------------------------------------------------------
 
-
+        // 메시지 전송 확인창
         dialog=new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog);
@@ -186,11 +190,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         AssetFileDescriptor fileDescriptor = activity.getAssets().openFd(modelPath);
         FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
         FileChannel fileChannel = inputStream.getChannel();
+
         long startOffset = fileDescriptor.getStartOffset();
         long declaredLength = fileDescriptor.getDeclaredLength();
+
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
-
 
     @Override
     protected void onResume() {
@@ -276,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                if(max<0.5) {
+                if(max<0.4) {
                     textView.setText("anomal");
                     showDialog();
                 }
@@ -289,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         num = num + 1;
     }
 
-    //Dialog popup
+    // Dialog popup
     public  void showDialog(){
         dialog.show();
 
@@ -328,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
 
-// ---------------------------------------------------- 주소값 읽어오기 -------------------------------------------------------------------
+// ---------------------------------------------------------- 주소값 읽어오기 -------------------------------------------------------------
     /*
      * ActivityCompat.requestPermissions를 사용하여 퍼미션 요청의 결과를 리턴받는 메소드
      */
@@ -336,8 +341,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grandResults) {
         super.onRequestPermissionsResult(permsRequestCode, permissions, grandResults);
 
+        // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신된 경우
         if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == REQUIRED_PERMISSIONS.length) {
-            // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
             boolean check_result = true;
 
             // 모든 퍼미션을 허용했는지 체크
@@ -348,37 +353,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
 
-            if (check_result) {
-                //위치 값을 가져올 수 있음
-            } else {
+            if (!check_result) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])) {
-                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요.", Toast.LENGTH_LONG).show();
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[2])) {
+                    Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 앱을 재실행하여 권한을 허용해주세요.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
-                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 설정(앱 정보)에서 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
                 }
             }
-
         }
+
     }
 
     // 런타임 퍼미션 처리
     void checkRunTimePermission(){
-        // 위치 퍼미션을 가지고 있는지 체크함
-        int hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
-        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-        // 퍼미션을 가지고 있다면 위치 값을 가져올 수 있음
         if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
-                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
+                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED &&
+                hasSMSPermission == PackageManager.PERMISSION_GRANTED) {
+            // 퍼미션을 가지고 있다면 위치 값을 가져올 수 있음
         }
-        else {  // 퍼미션 요청을 허용한 적이 없다면
-            // 사용자가 과거에 퍼미션 거부를 한 적이 있는 경우, 설명과 함께 사용자에게 퍼미션을 요청. 요청 결과는 onRequestPermissionResult에서 수신됨.
+        else {  // 퍼미션 요청이 허용되지 않았다면
+            // i) 사용자가 과거에 퍼미션 거부를 한 적이 있는 경우, 퍼미션을 다시 요청. 요청 결과는 onRequestPermissionResult에서 수신됨.
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, REQUIRED_PERMISSIONS[0])) {
-                Toast.makeText(MainActivity.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "설정(앱 정보)에서 위치 및 SMS 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
             }
-            // 사용자가 퍼미션 거부를 한 적이 없는 경우에는 바로 퍼미션 요청
+            // ii) 사용자가 퍼미션 거부를 한 적이 없는 경우, 바로 퍼미션 요청
             ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE);
         }
 
@@ -394,17 +396,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     latitude,
                     longitude,
                     7);
-        } catch (IOException ioException) {
-            //네트워크 문제
-            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
-            return "지오코더 서비스 사용불가";
+        } catch (IOException ioException) {     //네트워크 문제
+            Toast.makeText(this, "주소 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "주소 서비스 사용불가";
         } catch (IllegalArgumentException illegalArgumentException) {
             Toast.makeText(this, "잘못된 GPS 좌표입니다.", Toast.LENGTH_LONG).show();
             return "잘못된 GPS 좌표입니다.";
         }
 
         if (addresses == null || addresses.size() == 0) {
-            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "해당하는 주소가 없습니다.", Toast.LENGTH_LONG).show();
             return "해당하는 주소가 없습니다.";
         }
 
@@ -417,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void showDialogForLocationServiceSetting() {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("위치 서비스 비활성화");
-        builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다.\n" + "위치 설정을 수정하실래요?");
+        builder.setMessage("앱을 사용하기 위해서는 위치 사용 권한이 필요합니다.");
         builder.setCancelable(true);
 
         builder.setPositiveButton("설정", new DialogInterface.OnClickListener() {
@@ -443,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (requestCode) {
             case GPS_ENABLE_REQUEST_CODE:
-                //사용자가 GPS 활성 시켰는지 검사
+                //사용자가 GPS 활성화했는지 검사
                 if (checkLocationServicesStatus()) {
                     if (checkLocationServicesStatus()) {
                         Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
@@ -461,29 +462,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-    }
-
-    // SMS 권한이 부여되어 있는지 확인하는 함수
-    void checkSmsPermission(){
-        int permissionCheck= ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
-
-        if(permissionCheck == PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(getApplicationContext(), "SMS 수신권한 있음", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(getApplicationContext(), "SMS 수신권한 없음", Toast.LENGTH_SHORT).show();
-
-            // 권한 설정 dialog에서 '거부'를 누르면
-            // ActivityCompat.shouldShowRequestPermissionRationale 메소드의 반환값이 true가 된다.
-            // 단, 사용자가 "Don't ask again"을 체크한 경우
-            // 거부하더라도 false를 반환하여, 직접 사용자가 권한을 부여하지 않는 이상, 권한을 요청할 수 없게 된다.
-
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SEND_SMS)) {
-                // 이곳에 권한이 왜 필요한지 설명하는 Toast나 dialog를 띄워준 후, 다시 권한을 요청한다.
-                Toast.makeText(getApplicationContext(), "SMS 권한이 필요합니다", Toast.LENGTH_SHORT).show();
-            }
-            ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.SEND_SMS}, SMS_SEND_PERMISSION);
-        }
     }
 
 }

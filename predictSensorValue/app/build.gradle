@@ -14,7 +14,9 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true <!-- 파이어베이스 충돌 방지용 -->
+
+//        파이어베이스 충돌 방지용
+        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
