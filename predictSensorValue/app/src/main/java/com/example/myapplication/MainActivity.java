@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -32,6 +33,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -44,7 +51,7 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback {
 
     private SensorManager mSensorManger;
     private Sensor linearSensor;
@@ -142,27 +149,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             checkRunTimePermission();
         }
 
-
         // 메시지 전송 확인창
         dialog=new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
 
+        // 네비게이션바(메뉴바)
         bottomNavigation=findViewById(R.id.nav_view);
         bottomNavigation.setOnItemSelectedListener(new TabSelected());
         textView1=(TextView)findViewById(R.id.text1);
+
+        // 구글지도 불러오기
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
-    class TabSelected implements NavigationBarView.OnItemSelectedListener{
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+
+    }
+
+    class TabSelected implements NavigationBarView.OnItemSelectedListener {
+        @SuppressLint("NonConstantResourceId")
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
-                    textView1.setText("detect");
-
                     gpsTracker = new GpsTracker(MainActivity.this);
-
                     double latitude = gpsTracker.getLatitude();
                     double longitude = gpsTracker.getLongitude();
 
@@ -183,7 +197,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     return true;
                 }
                 case R.id.navigation_home:{
-                    textView1.setText("home");
+
+
                     return true;
                 }
                 case R.id.navigation_info:{
