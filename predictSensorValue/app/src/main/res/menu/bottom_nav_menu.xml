@@ -7,9 +7,9 @@
         android:title="감지 시작" />
 
     <item
-        android:id="@+id/navigation_home"
-        android:icon="@drawable/location_black_24"
-        android:title="지도" />
+        android:id="@+id/navigation_call"
+        android:icon="@drawable/phone_black_24"
+        android:title="112 신고" />
 
     <item
         android:id="@+id/navigation_info"

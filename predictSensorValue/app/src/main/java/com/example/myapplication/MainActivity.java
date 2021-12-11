@@ -21,6 +21,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,12 +34,15 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -106,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SEND_SMS};
 
     private GpsTracker gpsTracker;
+    private FusedLocationProviderClient fusedLocationClient;    // 마지막으로 알려진 사용자 위치 가져오기
 
     private Dialog dialog;
     private Handler dHandler;
@@ -163,6 +168,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // 구글지도 불러오기
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                        }
+                    }
+                });
     }
 
     @Override
@@ -196,8 +212,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     return true;
                 }
-                case R.id.navigation_home:{
-
+                case R.id.navigation_call:{
+                    // 112 신고(전화)
 
                     return true;
                 }
@@ -209,7 +225,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return false;
         }
     }
-
 
     // ----------------------------------------------------- 센서값 읽어오기 -------------------------------------------------------
     private Interpreter getTfliteInterpreter(String modelPath) {
@@ -321,9 +336,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 if(max<0.4) {
                     showDialog();
-                }
-                else
-                {
                 }
             }
         }

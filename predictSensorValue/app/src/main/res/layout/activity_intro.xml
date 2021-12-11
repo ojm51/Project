@@ -13,7 +13,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:layout_marginLeft="30dp"
-        android:text="SAFELOAD"
+        android:text="SafeLoad"
         android:textColor="@color/white"
         android:textSize="35sp"
         android:textStyle="bold" />
