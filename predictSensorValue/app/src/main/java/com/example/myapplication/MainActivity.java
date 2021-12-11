@@ -25,11 +25,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -86,8 +90,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float gzmin = (float) 0.0;
     float CVA = (float) 0.0;
 
-    TextView textView;
-
     int hasSMSPermission;
     int hasFineLocationPermission;
     int hasCoarseLocationPermission;
@@ -100,6 +102,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private Dialog dialog;
     private Handler dHandler;
+
+    BottomNavigationView bottomNavigation;
+    private TextView textView1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,8 +130,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyque=new Queue();
         gzque=new Queue();
 
-        // 행동 예측 결과
-        textView = (TextView) findViewById(R.id.result);
 
         mSensorManger=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
         linearSensor = mSensorManger.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
@@ -139,41 +142,61 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             checkRunTimePermission();
         }
 
-        final TextView textAddress = (TextView)findViewById(R.id.textAddress);
-        Button ShowLocationButton = (Button) findViewById(R.id.getAddrButton);
-        ShowLocationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                gpsTracker = new GpsTracker(MainActivity.this);
-
-                double latitude = gpsTracker.getLatitude();
-                double longitude = gpsTracker.getLongitude();
-
-                String address = getCurrentAddress(latitude, longitude);
-                textAddress.setText(address);
-
-                String phoneNumber = "여기에 -없이 전화번호 입력";
-
-                try {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    smsManager.sendTextMessage(phoneNumber, null, address, null, null);
-                    Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-            }
-        });
 
         // 메시지 전송 확인창
         dialog=new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
+
+        bottomNavigation=findViewById(R.id.nav_view);
+        bottomNavigation.setOnItemSelectedListener(new TabSelected());
+        textView1=(TextView)findViewById(R.id.text1);
+    }
+
+    class TabSelected implements NavigationBarView.OnItemSelectedListener{
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch ((item.getItemId())){
+                case R.id.navigation_detection:{
+                    textView1.setText("detect");
+
+                    gpsTracker = new GpsTracker(MainActivity.this);
+
+                    double latitude = gpsTracker.getLatitude();
+                    double longitude = gpsTracker.getLongitude();
+
+                    String address = getCurrentAddress(latitude, longitude);
+                    textView1.setText(address);
+
+                    String phoneNumber = "여기에 -없이 전화번호 입력";
+
+                    try {
+                        SmsManager smsManager = SmsManager.getDefault();
+                        smsManager.sendTextMessage(phoneNumber, null, address, null, null);
+                        Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+
+                    return true;
+                }
+                case R.id.navigation_home:{
+                    textView1.setText("home");
+                    return true;
+                }
+                case R.id.navigation_info:{
+                    textView1.setText("info");
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
 
-// ----------------------------------------------------- 센서값 읽어오기 -------------------------------------------------------
+    // ----------------------------------------------------- 센서값 읽어오기 -------------------------------------------------------
     private Interpreter getTfliteInterpreter(String modelPath) {
         try {
             return new Interpreter(loadModelFile(MainActivity.this, modelPath));
@@ -282,12 +305,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                 }
                 if(max<0.4) {
-                    textView.setText("anomal");
                     showDialog();
                 }
                 else
                 {
-                    textView.setText(activities[activity]);
                 }
             }
         }
@@ -333,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
 
-// ---------------------------------------------------------- 주소값 읽어오기 -------------------------------------------------------------
+    // ---------------------------------------------------------- 주소값 읽어오기 -------------------------------------------------------------
     /*
      * ActivityCompat.requestPermissions를 사용하여 퍼미션 요청의 결과를 리턴받는 메소드
      */
