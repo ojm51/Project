@@ -25,6 +25,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.MenuItem;
@@ -35,12 +36,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -105,12 +113,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int hasFineLocationPermission;
     int hasCoarseLocationPermission;
 
+    private static final String TAG = "googlemap_example";
+    private static final int UPDATE_INTERVAL_MS = 1000;  // 1초
+    private static final int FASTEST_UPDATE_INTERVAL_MS = 500; // 0.5초
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SEND_SMS};
 
-    private GpsTracker gpsTracker;
-    private FusedLocationProviderClient fusedLocationClient;    // 마지막으로 알려진 사용자 위치 가져오기
+    private GoogleMap mMap;
+    private Marker currentMarker = null;
+
+    String address;
+    Location mCurrentLocation;
+    LatLng currentPosition;
+
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationRequest locationRequest;
 
     private Dialog dialog;
     private Handler dHandler;
@@ -142,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyque=new Queue();
         gzque=new Queue();
 
-
         mSensorManger=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
         linearSensor = mSensorManger.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         gyroSensor=mSensorManger.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -165,15 +182,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         bottomNavigation.setOnItemSelectedListener(new TabSelected());
         textView1=(TextView)findViewById(R.id.text1);
 
+        // 현위치 불러오기
+        locationRequest = new LocationRequest()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(UPDATE_INTERVAL_MS)
+                .setFastestInterval(FASTEST_UPDATE_INTERVAL_MS);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         // 구글지도 불러오기
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // 마지막으로 알려진 사용자 위치 가져오기
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // Logic to handle location object
                         }
@@ -183,8 +211,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+        Log.d(TAG, "onMapReady :");
+        mMap = googleMap;
+
+        // 지도의 초기 위치를 서울로 설정
+        setDefaultLocation();
+
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(@NonNull LatLng latLng) {
+                Log.d( TAG, "onMapClick :");
+            }
+        });
 
     }
+
+    LocationCallback locationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+
+            List<Location> locationList = locationResult.getLocations();
+
+            if (locationList.size() > 0) {
+                Location location = locationList.get(locationList.size() - 1);
+
+                currentPosition = new LatLng(location.getLatitude(), location.getLongitude());
+
+                String markerTitle = getCurrentAddress(currentPosition);
+                String markerSnippet = "위도:" + String.valueOf(location.getLatitude())
+                        + " 경도:" + String.valueOf(location.getLongitude());
+
+                Log.d(TAG, "onLocationResult : " + markerSnippet);
+
+                //현재 위치에 마커 생성하고 이동
+                setCurrentLocation(location, markerTitle, markerSnippet);
+                mCurrentLocation = location;
+            }
+        }
+    };
 
     class TabSelected implements NavigationBarView.OnItemSelectedListener {
         @SuppressLint("NonConstantResourceId")
@@ -192,11 +258,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
-                    gpsTracker = new GpsTracker(MainActivity.this);
+                    GpsTracker gpsTracker = new GpsTracker(MainActivity.this);
                     double latitude = gpsTracker.getLatitude();
                     double longitude = gpsTracker.getLongitude();
 
-                    String address = getCurrentAddress(latitude, longitude);
+                    address = getCurrentAddress(latitude, longitude);
                     textView1.setText(address);
 
                     String phoneNumber = "여기에 -없이 전화번호 입력";
@@ -380,8 +446,102 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    private void startLocationUpdates() {
+        if (!checkLocationServicesStatus()) {
+            Log.d(TAG, "startLocationUpdates : call showDialogForLocationServiceSetting");
+            showDialogForLocationServiceSetting();
+        }else {
+            int hasFineLocationPermission = ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+            int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION);
 
-    // ---------------------------------------------------------- 주소값 읽어오기 -------------------------------------------------------------
+            if (hasFineLocationPermission != PackageManager.PERMISSION_GRANTED ||
+                    hasCoarseLocationPermission != PackageManager.PERMISSION_GRANTED   ) {
+                Log.d(TAG, "startLocationUpdates : 퍼미션 안가지고 있음");
+                return;
+            }
+
+            Log.d(TAG, "startLocationUpdates : call mFusedLocationClient.requestLocationUpdates");
+
+            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+
+            if (checkPermission())
+                mMap.setMyLocationEnabled(true);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Log.d(TAG, "onStart");
+
+        if (checkPermission()) {
+            Log.d(TAG, "onStart : call mFusedLocationClient.requestLocationUpdates");
+            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+            if (mMap!=null)
+                mMap.setMyLocationEnabled(true);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mFusedLocationClient != null) {
+            Log.d(TAG, "onStop : call stopLocationUpdates");
+            mFusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    private boolean checkPermission() {
+        int hasFineLocationPermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        return hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
+                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
+        if (currentMarker != null) currentMarker.remove();
+
+        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(currentLatLng);
+        markerOptions.title(markerTitle);
+        markerOptions.snippet(markerSnippet);
+        markerOptions.draggable(true);
+
+        currentMarker = mMap.addMarker(markerOptions);
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng);
+        mMap.moveCamera(cameraUpdate);
+    }
+
+    public void setDefaultLocation() {
+        // 디폴트 위치, Seoul
+        LatLng DEFAULT_LOCATION = new LatLng(37.56, 126.97);
+        String markerTitle = "위치 정보를 가져올 수 없음";
+        String markerSnippet = "위치 허용 여부를 확인하세요";
+
+        if (currentMarker != null) currentMarker.remove();
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(DEFAULT_LOCATION);
+        markerOptions.title(markerTitle);
+        markerOptions.snippet(markerSnippet);
+        markerOptions.draggable(true);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        currentMarker = mMap.addMarker(markerOptions);
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 15);
+        mMap.moveCamera(cameraUpdate);
+    }
+
     /*
      * ActivityCompat.requestPermissions를 사용하여 퍼미션 요청의 결과를 리턴받는 메소드
      */
@@ -402,6 +562,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             if (!check_result) {
+                startLocationUpdates();
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
                         || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])
                         || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[2])) {
@@ -417,7 +578,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // 런타임 퍼미션 처리
     void checkRunTimePermission(){
-
         if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
                 hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED &&
                 hasSMSPermission == PackageManager.PERMISSION_GRANTED) {
@@ -431,14 +591,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // ii) 사용자가 퍼미션 거부를 한 적이 없는 경우, 바로 퍼미션 요청
             ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE);
         }
-
     }
 
     // GeoCoder를 사용하여 위도&경도를 주소로 변환
-    public String getCurrentAddress( double latitude, double longitude) {
+    public String getCurrentAddress(double latitude, double longitude) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses;
 
+        List<Address> addresses;
         try {
             addresses = geocoder.getFromLocation(
                     latitude,
@@ -460,6 +619,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Address address = addresses.get(0);
 
         return address.getAddressLine(0).toString()+"\n";
+    }
+
+    public String getCurrentAddress(LatLng latlng) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        List<Address> addresses;
+        try {
+            addresses = geocoder.getFromLocation(
+                    latlng.latitude,
+                    latlng.longitude,
+                    1);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+        }
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+        } else {
+            Address address = addresses.get(0);
+            return address.getAddressLine(0).toString();
+        }
     }
 
     // GPS를 활성화하기 위한 메소드(1)
@@ -490,24 +676,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case GPS_ENABLE_REQUEST_CODE:
-                //사용자가 GPS 활성화했는지 검사
+        if (requestCode == GPS_ENABLE_REQUEST_CODE) {//사용자가 GPS 활성화했는지 검사
+            if (checkLocationServicesStatus()) {
                 if (checkLocationServicesStatus()) {
-                    if (checkLocationServicesStatus()) {
-                        Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
-                        checkRunTimePermission();
-                        return;
-                    }
+                    Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
+                    checkRunTimePermission();
                 }
-                break;
+            }
         }
     }
 
     // GPS를 활성화하기 위한 메소드(3)
     public boolean checkLocationServicesStatus() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
