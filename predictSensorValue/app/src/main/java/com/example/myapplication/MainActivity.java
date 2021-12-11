@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private KalmanFilter mKalmanGyroZ;
 
     private int num = 0;
+    private String phoneNumber;
 
     float ax = (float) 0.0;
     float ay = (float) 0.0;
@@ -134,7 +135,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Handler dHandler;
 
     BottomNavigationView bottomNavigation;
-    private TextView textView1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // 네비게이션바(메뉴바)
         bottomNavigation=findViewById(R.id.nav_view);
         bottomNavigation.setOnItemSelectedListener(new TabSelected());
-        textView1=(TextView)findViewById(R.id.text1);
 
         // 현위치 불러오기
         locationRequest = new LocationRequest()
@@ -266,23 +265,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
-                    GpsTracker gpsTracker = new GpsTracker(MainActivity.this);
-                    double latitude = gpsTracker.getLatitude();
-                    double longitude = gpsTracker.getLongitude();
-
-                    address = getCurrentAddress(latitude, longitude);
-                    textView1.setText(address);
-
-                    String phoneNumber = "여기에 -없이 전화번호 입력";
-
-                    try {
-                        SmsManager smsManager = SmsManager.getDefault();
-                        smsManager.sendTextMessage(phoneNumber, null, address, null, null);
-                        Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
 
                     return true;
                 }
@@ -292,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     return true;
                 }
                 case R.id.navigation_info:{
-                    textView1.setText("info");
+
                     return true;
                 }
             }
@@ -408,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                if(max<0.4) {
+                if(activities[activity]=="Run") {
                     showDialog();
                 }
             }
@@ -433,8 +415,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // 원하는 기능 구현
-                finish();           // 앱 종료
+                GpsTracker gpsTracker = new GpsTracker(MainActivity.this);
+                double latitude = gpsTracker.getLatitude();
+                double longitude = gpsTracker.getLongitude();
+
+                address = getCurrentAddress(latitude, longitude);
+
+                phoneNumber = "여기에 -없이 전화번호 입력";
+
+                try {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(phoneNumber, null, address, null, null);
+                    Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
             }
         });
 
