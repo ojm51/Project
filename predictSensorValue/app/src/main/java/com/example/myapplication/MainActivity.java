@@ -196,6 +196,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
+        Button location = (Button) findViewById(R.id.location);
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
+            }
+        });
+
         // 마지막으로 알려진 사용자 위치 가져오기
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
