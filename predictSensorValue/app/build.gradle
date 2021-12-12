@@ -64,5 +64,6 @@ dependencies {
     // 구글맵
     implementation 'com.google.android.gms:play-services-maps:17.0.1'
     implementation 'com.google.android.gms:play-services-location:18.0.0'
-
+    // 주변의 특정 건물 찾기
+    implementation 'noman.placesapi:placesAPI:1.1.3'
 }

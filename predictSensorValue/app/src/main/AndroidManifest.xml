@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.myapplication"> <!-- 파이어베이스 충돌 방지용 -->
+    package="com.example.myapplication">
+
+    <!-- 파이어베이스 충돌 방지용 -->
     <uses-sdk tools:overrideLibrary="com.google.firebase.firestore" />
+
     <!-- 위치 관련 퍼미션 -->
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- 문자 관련 퍼미션 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 문자 관련 퍼미션 -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -17,7 +23,8 @@
         android:label="SafeLoad"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication">
+        android:theme="@style/Theme.MyApplication"
+        tools:replace="android:allowBackup,android:label">
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
