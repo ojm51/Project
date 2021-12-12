@@ -23,9 +23,11 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.MenuItem;
@@ -361,7 +363,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
-
+                    Intent intent=new Intent(Intent.ACTION_VIEW, Uri.parse("tel:"+phoneNumber));
+                    startActivity(intent);
                     return true;
                 }
                 case R.id.navigation_info:{
@@ -492,6 +495,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Dialog popup
     public  void showDialog(){
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(500);
         dialog.show();
 
         // 아니오 버튼
