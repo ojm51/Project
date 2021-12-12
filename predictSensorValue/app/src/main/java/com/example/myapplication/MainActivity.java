@@ -216,13 +216,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
-        Button location = (Button) findViewById(R.id.location);
-        location.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
-            }
-        });
+//        Button location = (Button) findViewById(R.id.location);
+//        location.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
+//            }
+//        });
 
         // 마지막으로 알려진 사용자 위치 가져오기
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -340,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .listener(MainActivity.this)
                 .key("AIzaSyBfl2h0siwrjJfLfyuhbtixLDYsOA3z5qA")
                 .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(1000) //1000 미터 내에서 검색
+                .radius(1500) //1500 미터 내에서 검색
                 .type(PlaceType.POLICE) //경찰서
                 .build()
                 .execute();
