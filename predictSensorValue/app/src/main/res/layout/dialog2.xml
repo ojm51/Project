@@ -9,13 +9,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="20dp"
-        android:text="5초후 시작됩니다.\n 스마트폰을 지정된 위치에 넣어주세요" />
-
-
+        android:text="5초 후 감지가 시작됩니다.\n스마트폰을 지정된 위치에 넣어주세요." />
+    
         <Button
             android:id="@+id/confirm"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="5dp"
             android:text="확인"
             android:textSize="20dp"/>
 
