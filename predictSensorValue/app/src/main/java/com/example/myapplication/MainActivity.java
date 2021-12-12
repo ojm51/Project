@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String phoneNumber;
     private int sending=0;
     private int sensoron=0;
-    private int sensoract=0;
 
     float ax = (float) 0.0;
     float ay = (float) 0.0;
@@ -152,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private LocationRequest locationRequest;
 
     private Dialog dialog;
+    private Dialog dialog2;
     private Handler dHandler;
 
     private FirebaseAuth mAuth;
@@ -200,6 +200,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
+
+        //이상탐지 시작 확인 창
+        dialog2=new Dialog(MainActivity.this);
+        dialog2.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog2.setContentView(R.layout.dialog2);
 
         // 네비게이션바(메뉴바)
         bottomNavigation=findViewById(R.id.nav_view);
@@ -365,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     sensoron=1;
                     item.setTitle("감지 중지");
                     item.setIcon(R.drawable.normal_black_24);
-
+                    showDialog2();
                     return true;}
 
                     else{
@@ -571,6 +576,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             dialog.dismiss();
         }
     };
+
+
+    public  void showDialog2(){
+        dialog2.show();
+        // 네 버튼
+        dialog2.findViewById(R.id.confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog2.dismiss();
+            }
+        });
+    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
