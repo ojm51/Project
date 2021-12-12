@@ -50,9 +50,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -134,12 +139,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Dialog dialog;
     private Handler dHandler;
 
+    private FirebaseAuth mAuth;
+
     BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth = FirebaseAuth.getInstance();
 
         // 퍼미션을 가지고 있는지 체크함
         hasSMSPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
@@ -274,7 +283,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     return true;
                 }
                 case R.id.navigation_info:{
-
+                    Intent intent_info = new Intent(MainActivity.this, writeInfo.class);
+                    startActivity(intent_info);
                     return true;
                 }
             }
@@ -375,14 +385,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 CVA = (float) Math.sqrt(Math.pow(Kalax, 2) + Math.pow(Kalay, 2) + Math.pow(Kalaz, 2));
 
                 float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
-                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
+                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
 
-                Interpreter tflite = getTfliteInterpreter("tensorModel_211205.tflite");
+                Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
                 tflite.run(input, output);
 
                 float max = output[0][0][0];
                 int activity = (int) 0;
-                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown"};
+                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "anormal"};
 
                 for (int i = 0; i < output[0][0].length; i++) {
                     if (output[0][0][i] > max) {
@@ -390,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                if(activities[activity]=="Run") {
+                if(activities[activity]=="anormal") {
                     showDialog();
                 }
             }
@@ -481,6 +491,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         Log.d(TAG, "onStart");
 
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null){}
+        else{
+            signInAnonymously();
+        }
+
         if (checkPermission()) {
             Log.d(TAG, "onStart : call mFusedLocationClient.requestLocationUpdates");
             mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
@@ -488,6 +505,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 mMap.setMyLocationEnabled(true);
         }
     }
+
+    private void signInAnonymously() {
+        // [START signin_anonymously]
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInAnonymously:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInAnonymously:failure", task.getException());
+                            Toast.makeText(MainActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+        // [END signin_anonymously]
+    }
+    private void updateUI(FirebaseUser user) { }
 
     @Override
     protected void onStop() {
