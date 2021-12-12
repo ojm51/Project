@@ -14,17 +14,7 @@
         android:layout_height="wrap_content"
         android:drawableLeft="@drawable/location_on_black_24"
         app:backgroundTint="#CDDC39"
-        app:layout_constraintRight_toLeftOf="@id/real_time_location"
-        app:layout_constraintTop_toTopOf="@+id/map" />
-
-    <Button
-        android:id="@+id/real_time_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:drawableLeft="@drawable/my_location_black_24"
-        app:backgroundTint="#CDDC39"
-        app:layout_constraintLeft_toRightOf="@+id/location"
+        app:layout_constraintLeft_toLeftOf="@id/map"
         app:layout_constraintTop_toTopOf="@+id/map" />
 
     <fragment
@@ -46,6 +36,14 @@
         map:uiTiltGestures="true"
         map:uiZoomControls="false"
         map:uiZoomGestures="true" />
+
+    <Button
+        android:id="@+id/police_station"
+        android:text="장소검색"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
