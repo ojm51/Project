@@ -429,14 +429,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         mSensorManger.registerListener(this, linearSensor, SensorManager.SENSOR_DELAY_UI);
         mSensorManger.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_UI);
-        DocumentReference docRef = FirebaseFirestore.getInstance().collection("Info").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                myInfo info = documentSnapshot.toObject(myInfo.class);
-                phoneNumber=info.getParentPhone();
-            }
-        });
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null){
+            DocumentReference docRef = FirebaseFirestore.getInstance().collection("Info").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    try {
+                        myInfo info = documentSnapshot.toObject(myInfo.class);
+                        phoneNumber = info.getParentPhone();
+                    }catch (Exception e){
+                        Toast.makeText(MainActivity.this, "정보 입력을 해주세요", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -636,7 +643,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null){}
+        if(currentUser != null){ }
         else{
             signInAnonymously();
         }
