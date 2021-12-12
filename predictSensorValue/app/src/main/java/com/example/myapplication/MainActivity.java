@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int FASTEST_UPDATE_INTERVAL_MS = 500; // 0.5초
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SEND_SMS};
+    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SEND_SMS,Manifest.permission.CALL_PHONE};
 
     private GoogleMap mMap;
     private Marker currentMarker = null;
@@ -477,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 float max = output[0][0][0];
                 int activity = (int) 0;
-                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "anormal"};
+                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
 
                 for (int i = 0; i < output[0][0].length; i++) {
                     if (output[0][0][i] > max) {
@@ -485,7 +485,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                if(activities[activity]=="anormal") {
+                if(activities[activity]=="abnormal") {
+                    mSensorManger.unregisterListener(this);
                     showDialog();
                 }
             }
@@ -695,7 +696,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startLocationUpdates();
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
                         || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[2])) {
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[2])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[3])) {
                     Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 앱을 재실행하여 권한을 허용해주세요.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
