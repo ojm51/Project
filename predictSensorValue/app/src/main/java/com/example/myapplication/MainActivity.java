@@ -363,11 +363,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 case R.id.navigation_detection:{
                     if(sensoron==0){
                     sensoron=1;
+                    item.setTitle("감지 중지");
+                    item.setIcon(R.drawable.normal_black_24);
+
                     return true;}
 
                     else{
                         sensoron=0;
                         num=0;
+                        item.setTitle("감지 시작");
+                        item.setIcon(R.drawable.run_black_24);
                         return true;
                     }
                 }
