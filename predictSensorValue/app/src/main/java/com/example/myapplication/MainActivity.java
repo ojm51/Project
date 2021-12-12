@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private int num = 0;
     private String phoneNumber;
+    private int sending=0;
 
     float ax = (float) 0.0;
     float ay = (float) 0.0;
@@ -358,12 +359,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
-
                     return true;
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
-                    Intent intent=new Intent(Intent.ACTION_VIEW, Uri.parse("tel:"+phoneNumber));
+                    Intent intent=new Intent(Intent.ACTION_CALL, Uri.parse("tel:"+phoneNumber));
                     startActivity(intent);
                     return true;
                 }
@@ -486,8 +486,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
                 }
                 if(activities[activity]=="abnormal") {
-                    mSensorManger.unregisterListener(this);
-                    showDialog();
+                    if(dialog.isShowing()==false) {
+                        showDialog();
+                        sending = 0;
+                    }
                 }
             }
         }
@@ -506,33 +508,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 // 원하는 기능 구현
-                dialog.dismiss(); // 다이얼로그 닫기
+                sending=1;
+                dialog.dismiss();
             }
         });
         // 네 버튼
         dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                GpsTracker gpsTracker = new GpsTracker(MainActivity.this);
-                double latitude = gpsTracker.getLatitude();
-                double longitude = gpsTracker.getLongitude();
+                sending=0;
+                dialog.dismiss();
+            }
+        });
+        dHandler.postDelayed(dRunnable, 5000);
 
-                address = getCurrentAddress(latitude, longitude);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                if(sending==0) {
+                    GpsTracker gpsTracker = new GpsTracker(MainActivity.this);
+                    double latitude = gpsTracker.getLatitude();
+                    double longitude = gpsTracker.getLongitude();
 
-                phoneNumber = "여기에 -없이 전화번호 입력";
+                    address = getCurrentAddress(latitude, longitude);
 
-                try {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    smsManager.sendTextMessage(phoneNumber, null, address, null, null);
-                    Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
+                    phoneNumber = "여기에 -없이 전화번호 입력";
+
+                    try {
+                        SmsManager smsManager = SmsManager.getDefault();
+                        smsManager.sendTextMessage(phoneNumber, null, address, null, null);
+                        Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
                 }
             }
         });
-
-        dHandler.postDelayed(dRunnable, 5000);
     }
 
     //Dialog delay
