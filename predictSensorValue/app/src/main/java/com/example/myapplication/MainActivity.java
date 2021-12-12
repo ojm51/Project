@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int num = 0;
     private String phoneNumber;
     private int sending=0;
+    private int sensoron=0;
+    private int sensoract=0;
 
     float ax = (float) 0.0;
     float ay = (float) 0.0;
@@ -359,7 +361,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
-                    return true;
+                    if(sensoron==0){
+                    sensoron=1;
+                    return true;}
+
+                    else{
+                        sensoron=0;
+                        num=0;
+                        return true;
+                    }
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
@@ -416,84 +426,86 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor == linearSensor && num > 160) {
-            ax = event.values[0];
-            ay = event.values[1];
-            az = event.values[2];
+        if(sensoron==1) {
+            if (event.sensor == linearSensor && num > 160) {
+                ax = event.values[0];
+                ay = event.values[1];
+                az = event.values[2];
 
-            Kalax=(float)mKalmanAccX.update(ax);
-            Kalay=(float)mKalmanAccY.update(ay);
-            Kalaz=(float)mKalmanAccZ.update(az);
-        }
-
-        if (event.sensor == gyroSensor && num > 160) {
-            double gyroX = event.values[0];
-            double gyroY = event.values[1];
-            double gyroZ = event.values[2];
-            gx = (float) gyroX;
-            gy = (float) gyroY;
-            gz = (float) gyroZ;
-
-            Kalgx=(float)mKalmanGyroX.update(gx);
-            Kalgy=(float)mKalmanGyroY.update(gy);
-            Kalgz=(float)mKalmanGyroZ.update(gz);
-
-            axque.enqueue(ax);
-            ayque.enqueue(ay);
-            azque.enqueue(az);
-            gxque.enqueue(gx);
-            gyque.enqueue(gy);
-            gzque.enqueue(gz);
-
-            if (axque.size() > 40) {
-                axque.dequeue();
-                ayque.dequeue();
-                azque.dequeue();
-                gxque.dequeue();
-                gyque.dequeue();
-                gzque.dequeue();
+                Kalax = (float) mKalmanAccX.update(ax);
+                Kalay = (float) mKalmanAccY.update(ay);
+                Kalaz = (float) mKalmanAccZ.update(az);
             }
 
-            if (axque.size() == 40) {
-                axmax = axque.max();
-                aymax = ayque.max();
-                azmax = azque.max();
-                axmin = axque.min();
-                aymin = ayque.min();
-                azmin = azque.min();
-                gxmax = gxque.max();
-                gymax = gyque.max();
-                gzmax = gzque.max();
-                gxmin = gxque.min();
-                gymin = gyque.min();
-                gzmin = gzque.min();
-                CVA = (float) Math.sqrt(Math.pow(Kalax, 2) + Math.pow(Kalay, 2) + Math.pow(Kalaz, 2));
+            if (event.sensor == gyroSensor && num > 160) {
+                double gyroX = event.values[0];
+                double gyroY = event.values[1];
+                double gyroZ = event.values[2];
+                gx = (float) gyroX;
+                gy = (float) gyroY;
+                gz = (float) gyroZ;
 
-                float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
-                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
+                Kalgx = (float) mKalmanGyroX.update(gx);
+                Kalgy = (float) mKalmanGyroY.update(gy);
+                Kalgz = (float) mKalmanGyroZ.update(gz);
 
-                Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
-                tflite.run(input, output);
+                axque.enqueue(ax);
+                ayque.enqueue(ay);
+                azque.enqueue(az);
+                gxque.enqueue(gx);
+                gyque.enqueue(gy);
+                gzque.enqueue(gz);
 
-                float max = output[0][0][0];
-                int activity = (int) 0;
-                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
-
-                for (int i = 0; i < output[0][0].length; i++) {
-                    if (output[0][0][i] > max) {
-                        max = output[0][0][i];
-                        activity = i;
-                    }
+                if (axque.size() > 40) {
+                    axque.dequeue();
+                    ayque.dequeue();
+                    azque.dequeue();
+                    gxque.dequeue();
+                    gyque.dequeue();
+                    gzque.dequeue();
                 }
-                if(activities[activity]=="abnormal") {
-                    if(dialog.isShowing()==false) {
-                        showDialog();
-                        sending = 0;
+
+                if (axque.size() == 40) {
+                    axmax = axque.max();
+                    aymax = ayque.max();
+                    azmax = azque.max();
+                    axmin = axque.min();
+                    aymin = ayque.min();
+                    azmin = azque.min();
+                    gxmax = gxque.max();
+                    gymax = gyque.max();
+                    gzmax = gzque.max();
+                    gxmin = gxque.min();
+                    gymin = gyque.min();
+                    gzmin = gzque.min();
+                    CVA = (float) Math.sqrt(Math.pow(Kalax, 2) + Math.pow(Kalay, 2) + Math.pow(Kalaz, 2));
+
+                    float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
+                    float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
+
+                    Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
+                    tflite.run(input, output);
+
+                    float max = output[0][0][0];
+                    int activity = (int) 0;
+                    String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
+
+                    for (int i = 0; i < output[0][0].length; i++) {
+                        if (output[0][0][i] > max) {
+                            max = output[0][0][i];
+                            activity = i;
+                        }
+                    }
+                    if (activities[activity] == "abnormal") {
+                        if (dialog.isShowing() == false) {
+                            showDialog();
+                            sending = 0;
+                        }
                     }
                 }
             }
+            num = num + 1;
         }
-        num = num + 1;
     }
 
     // Dialog popup
