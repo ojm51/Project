@@ -59,6 +59,9 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -426,6 +429,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         mSensorManger.registerListener(this, linearSensor, SensorManager.SENSOR_DELAY_UI);
         mSensorManger.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_UI);
+        DocumentReference docRef = FirebaseFirestore.getInstance().collection("Info").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                myInfo info = documentSnapshot.toObject(myInfo.class);
+                phoneNumber=info.getParentPhone();
+            }
+        });
     }
 
     @Override
@@ -553,8 +564,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     double longitude = gpsTracker.getLongitude();
 
                     address = getCurrentAddress(latitude, longitude);
-
-                    phoneNumber = "여기에 -없이 전화번호 입력";
 
                     try {
                         SmsManager smsManager = SmsManager.getDefault();
