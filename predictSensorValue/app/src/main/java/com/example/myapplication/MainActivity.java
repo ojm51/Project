@@ -93,12 +93,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Queue gxque;
     private Queue gyque;
     private Queue gzque;
-    private KalmanFilter mKalmanAccX;
-    private KalmanFilter mKalmanAccY;
-    private KalmanFilter mKalmanAccZ;
-    private KalmanFilter mKalmanGyroX;
-    private KalmanFilter mKalmanGyroY;
-    private KalmanFilter mKalmanGyroZ;
+//    private KalmanFilter mKalmanAccX;
+//    private KalmanFilter mKalmanAccY;
+//    private KalmanFilter mKalmanAccZ;
+//    private KalmanFilter mKalmanGyroX;
+//    private KalmanFilter mKalmanGyroY;
+//    private KalmanFilter mKalmanGyroZ;
 
     private int num = 0;
     private String phoneNumber;
@@ -111,25 +111,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float gx = (float) 0.0;
     float gy = (float) 0.0;
     float gz = (float) 0.0;
-    float Kalax = (float) 0.0;
-    float Kalay = (float) 0.0;
-    float Kalaz = (float) 0.0;
-    float Kalgx = (float) 0.0;
-    float Kalgy = (float) 0.0;
-    float Kalgz = (float) 0.0;
-    float axmax = (float) 0.0;
-    float axmin = (float) 0.0;
-    float aymax = (float) 0.0;
-    float aymin = (float) 0.0;
-    float azmax = (float) 0.0;
-    float azmin = (float) 0.0;
-    float gxmax = (float) 0.0;
-    float gxmin = (float) 0.0;
-    float gymax = (float) 0.0;
-    float gymin = (float) 0.0;
-    float gzmax = (float) 0.0;
-    float gzmin = (float) 0.0;
-    float CVA = (float) 0.0;
+//    float Kalax = (float) 0.0;
+//    float Kalay = (float) 0.0;
+//    float Kalaz = (float) 0.0;
+//    float Kalgx = (float) 0.0;
+//    float Kalgy = (float) 0.0;
+//    float Kalgz = (float) 0.0;
 
     int hasSMSPermission;
     int hasFineLocationPermission;
@@ -173,12 +160,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
         hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-        mKalmanAccX=new KalmanFilter(0.0f);
-        mKalmanAccY=new KalmanFilter(0.0f);
-        mKalmanAccZ=new KalmanFilter(0.0f);
-        mKalmanGyroX=new KalmanFilter(0.0f);
-        mKalmanGyroY=new KalmanFilter(0.0f);
-        mKalmanGyroZ=new KalmanFilter(0.0f);
+//        mKalmanAccX=new KalmanFilter(0.0f);
+//        mKalmanAccY=new KalmanFilter(0.0f);
+//        mKalmanAccZ=new KalmanFilter(0.0f);
+//        mKalmanGyroX=new KalmanFilter(0.0f);
+//        mKalmanGyroY=new KalmanFilter(0.0f);
+//        mKalmanGyroZ=new KalmanFilter(0.0f);
 
         axque=new Queue();
         ayque=new Queue();
@@ -454,15 +441,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(sensoron==1) {
+        if (sensoron == 1) {
             if (event.sensor == linearSensor && num > 160) {
                 ax = event.values[0];
                 ay = event.values[1];
                 az = event.values[2];
 
-                Kalax = (float) mKalmanAccX.update(ax);
-                Kalay = (float) mKalmanAccY.update(ay);
-                Kalaz = (float) mKalmanAccZ.update(az);
+//                Kalax = (float) mKalmanAccX.update(ax);
+//                Kalay = (float) mKalmanAccY.update(ay);
+//                Kalaz = (float) mKalmanAccZ.update(az);
             }
 
             if (event.sensor == gyroSensor && num > 160) {
@@ -473,9 +460,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gy = (float) gyroY;
                 gz = (float) gyroZ;
 
-                Kalgx = (float) mKalmanGyroX.update(gx);
-                Kalgy = (float) mKalmanGyroY.update(gy);
-                Kalgz = (float) mKalmanGyroZ.update(gz);
+//                Kalgx = (float) mKalmanGyroX.update(gx);
+//                Kalgy = (float) mKalmanGyroY.update(gy);
+//                Kalgz = (float) mKalmanGyroZ.update(gz);
 
                 axque.enqueue(ax);
                 ayque.enqueue(ay);
@@ -493,47 +480,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     gzque.dequeue();
                 }
 
-                if (axque.size() == 40) {
-                    axmax = axque.max();
-                    aymax = ayque.max();
-                    azmax = azque.max();
-                    axmin = axque.min();
-                    aymin = ayque.min();
-                    azmin = azque.min();
-                    gxmax = gxque.max();
-                    gymax = gyque.max();
-                    gzmax = gzque.max();
-                    gxmin = gxque.min();
-                    gymin = gyque.min();
-                    gzmin = gzque.min();
-                    CVA = (float) Math.sqrt(Math.pow(Kalax, 2) + Math.pow(Kalay, 2) + Math.pow(Kalaz, 2));
 
-                    float[][][] input = new float[][][]{{{axmax, axmin, aymax, aymin, azmax, azmin, CVA, gxmax, gxmin, gymax, gymin, gzmax, gzmin}}};
-                    float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
+                float[][][] input = new float[][][]{{{}}};
+                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
 
-                    Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
-                    tflite.run(input, output);
+                Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
+                tflite.run(input, output);
 
-                    float max = output[0][0][0];
-                    int activity = (int) 0;
-                    String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
+                float max = output[0][0][0];
+                int activity = (int) 0;
+                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
 
-                    for (int i = 0; i < output[0][0].length; i++) {
-                        if (output[0][0][i] > max) {
-                            max = output[0][0][i];
-                            activity = i;
-                        }
+                for (int i = 0; i < output[0][0].length; i++) {
+                    if (output[0][0][i] > max) {
+                        max = output[0][0][i];
+                        activity = i;
                     }
-                    if (activities[activity] == "abnormal") {
-                        if (dialog.isShowing() == false) {
-                            showDialog();
-                            sending = 0;
-                        }
+                }
+                if (activities[activity] == "abnormal") {
+                    if (dialog.isShowing() == false) {
+                        showDialog();
+                        sending = 0;
                     }
                 }
             }
             num = num + 1;
         }
+
     }
 
     // Dialog popup
