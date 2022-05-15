@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -73,6 +74,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.Place;
@@ -357,19 +360,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
                     if(sensoron==0){
-                    sensoron=1;
-                    item.setTitle("감지 중지");
-                    item.setIcon(R.drawable.normal_black_24);
-                    showDialog2();
-                    return true;}
-
+                        sensoron=1;
+                        item.setTitle("감지 중지");
+                        item.setIcon(R.drawable.normal_black_24);
+                        showDialog2();
+                    }
                     else{
                         sensoron=0;
                         num=0;
                         item.setTitle("감지 시작");
                         item.setIcon(R.drawable.run_black_24);
-                        return true;
                     }
+                    return true;
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
@@ -485,6 +487,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
 
                 Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
+                assert tflite != null;
                 tflite.run(input, output);
 
                 float max = output[0][0][0];
@@ -497,8 +500,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         activity = i;
                     }
                 }
-                if (activities[activity] == "abnormal") {
-                    if (dialog.isShowing() == false) {
+                if (activities[activity].equals("abnormal")) {
+                    if (!dialog.isShowing()) {
                         showDialog();
                         sending = 0;
                     }
@@ -510,10 +513,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // Dialog popup
-    public  void showDialog(){
+    public void showDialog(){
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
         dialog.show();
+        countDown_dialog();
 
         // 아니오 버튼
         Button noBtn = dialog.findViewById(R.id.noBtn);
@@ -523,6 +527,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 // 원하는 기능 구현
                 sending=1;
                 dialog.dismiss();
+                timer.cancel();
+                Log.i("timerStop", "Timer stop");
             }
         });
         // 네 버튼
@@ -531,6 +537,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void onClick(View view) {
                 sending=0;
                 dialog.dismiss();
+                timer.cancel();
+                Log.i("timerStop", "Timer stop");
             }
         });
         dHandler.postDelayed(dRunnable, 5000);
@@ -558,7 +566,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    //Dialog delay
+    // Dialog: n초 후 문자 전송 카운트 다운
+    Timer timer = new Timer();
+    private TextView countDown_txt;
+    private int timer_sec;
+    public void countDown_dialog() {
+        countDown_txt = (TextView) dialog.findViewById(R.id.countDown_txt);
+        timer_sec = 10;
+
+        TimerTask second = new TimerTask() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i("countDown", "Timer start");
+                        countDown_txt.setText(timer_sec + "초 후에 문자가 자동으로 전송됩니다.\n문자를 전송하지 않으려면 '아니오'를 눌러주세요.");
+                        timer_sec--;
+                    }
+                });
+
+                if(timer_sec == 0){
+                    dialog.dismiss();
+                    cancel();
+                    Log.i("timerStop", "Timer stop");
+                }
+            }
+        };
+        timer.schedule(second, 0, 1000);
+    }
+
+    // Dialog delay
     private Runnable dRunnable=new Runnable() {
         @Override
         public void run() {
@@ -567,15 +606,47 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     };
 
 
-    public  void showDialog2(){
+    public void showDialog2(){
         dialog2.show();
+        countDown_dialog2();
+
         // 네 버튼
         dialog2.findViewById(R.id.confirm).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialog2.dismiss();
+                timer.cancel();
+                Log.i("timerStop2", "Timer stop2");
             }
         });
+    }
+
+    // Dialog2: n초 후 감지 시작 카운트 다운
+    public void countDown_dialog2() {
+        countDown_txt = (TextView) dialog2.findViewById(R.id.countDown2_txt);
+        timer_sec = 5;
+
+        TimerTask second = new TimerTask() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i("countDown2", "Timer start2");
+                        countDown_txt.setText(timer_sec + "초 후 감지가 시작됩니다.\n스마트폰을 지정된 위치에 넣어주세요.");
+                        timer_sec--;
+                    }
+                });
+
+                if(timer_sec == 0){
+                    dialog2.dismiss();
+                    cancel();
+                    Log.i("timerStop2", "Timer stop2");
+                }
+            }
+        };
+        timer.schedule(second, 0, 1000);
     }
 
     @Override

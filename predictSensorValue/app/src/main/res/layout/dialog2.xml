@@ -6,10 +6,12 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/countDown2_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="5초 후 감지가 시작됩니다.\n스마트폰을 지정된 위치에 넣어주세요." />
+        android:padding="15dp"
+        android:textSize="15dp"
+        android:text="곧 감지가 시작됩니다." />
     
         <Button
             android:id="@+id/confirm"
