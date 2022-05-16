@@ -316,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(markerSnippet);
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(230));     // 마커 색상 0~360
                     Marker item = mMap.addMarker(markerOptions);
                     previous_marker.add(item);
                 }
@@ -512,7 +513,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    // Dialog popup
+    // 메시지 전송 Dialog popup
     public void showDialog(){
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
