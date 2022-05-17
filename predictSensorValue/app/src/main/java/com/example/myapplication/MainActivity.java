@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Marker currentMarker = null;
     List<Marker> previous_marker = null;
 
+    int police_marker = 0;
     String address;
     Location mCurrentLocation;
     LatLng currentPosition;
@@ -194,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
 
-        //이상탐지 시작 확인 창
+        // 이상탐지 시작 확인 창
         dialog2=new Dialog(MainActivity.this);
         dialog2.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog2.setContentView(R.layout.dialog2);
@@ -217,14 +218,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
-//        Button location = (Button) findViewById(R.id.location);
-//        location.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
-//            }
-//        });
-
         // 마지막으로 알려진 사용자 위치 가져오기
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
@@ -243,7 +236,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPlaceInformation(currentPosition);
+                if(police_marker == 0){     // 경찰서 위치 버튼을 누르지 않은 상태였다면
+                    police_marker = 1;
+                    showPlaceInformation(currentPosition);
+                }
+                else if(police_marker == 1){     // 경찰서 위치 버튼을 누른 상태였다면
+                    police_marker = 0;
+                    mMap.clear();   //지도 클리어
+                    if (previous_marker != null)
+                        previous_marker.clear();    //지역정보 마커 클리어
+                }
             }
         });
     }
@@ -291,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
-    // 주변의 특정 건물 찾기
+    // 주변의 특정 건물(경찰서) 찾기
     @Override
     public void onPlacesFailure(PlacesException e) {
 
@@ -316,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(markerSnippet);
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(230));     // 마커 색상 0~360
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));     // 마커 색상(색상환표 참고, 0~360)
                     Marker item = mMap.addMarker(markerOptions);
                     previous_marker.add(item);
                 }
@@ -326,18 +328,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 hashSet.addAll(previous_marker);
                 previous_marker.clear();
                 previous_marker.addAll(hashSet);
-
             }
         });
     }
 
-    public void showPlaceInformation(LatLng location)
-    {
-        mMap.clear();//지도 클리어
-
-        if (previous_marker != null)
-            previous_marker.clear();//지역정보 마커 클리어
-
+    public void showPlaceInformation(LatLng location) {
         new NRPlaces.Builder()
                 .listener(MainActivity.this)
                 .key("AIzaSyBfl2h0siwrjJfLfyuhbtixLDYsOA3z5qA")
@@ -352,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onPlacesFinished() {
 
     }
-    // 주변의 특정 건물 찾기 - 여기까지
+    // 주변의 특정 건물(경찰서) 찾기 - 끝
 
     class TabSelected implements NavigationBarView.OnItemSelectedListener {
         @SuppressLint("NonConstantResourceId")
