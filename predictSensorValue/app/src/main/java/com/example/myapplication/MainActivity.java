@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         myInfo info = documentSnapshot.toObject(myInfo.class);
                         phoneNumber = info.getParentPhone();
                     }catch (Exception e){
-                        Toast.makeText(MainActivity.this, "정보 입력을 해주세요", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "정보를 먼저 입력을 해주세요.", Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -527,6 +527,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Log.i("timerStop", "Timer stop");
             }
         });
+
         // 네 버튼
         dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -538,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
         dHandler.postDelayed(dRunnable, 5000);
-
+        // 메시지 전송
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {

@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="40dip"
             android:background="#3f3f3f"
-            android:text="사용자 정보 입력"
+            android:text="저장하기"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="15dp"
