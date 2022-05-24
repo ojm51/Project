@@ -6,17 +6,22 @@
 </p>
 
 # What's SafeRoad?
-SafeRoad is an application that detects user abnormal behavior using sensors on the smartphone.  
+SafeRoad is an application that detects user's abnormal behavior using sensors on the smartphone.  
 
 
 # Functions of SafeRoad
-#### :warning: Detect abnormal behavior
+#### ⚠️ Detect abnormal behavior
   - By using the gyro sensor and acceleration sensor of the smartphone.  
 
 
-#### :telephone_receiver: Easy report without specific movement
-  - By continuously analyzing the user's behavior in the background, the app automatically reports when abnormal behavior is detected.  
+#### 👮 Easy report without specific movement
+  - By continuously analyzing the user's behavior in the background.
+  - The app automatically reports when abnormal behavior is detected.  
 
 
-#### 🚧 Mark the skid row and a nearby police station
-  - By using Google Map API to mark nearby police stations and using public data to display crime-prone areas.  
+#### 📍 Mark the nearby police station
+  - By using Google Map API to mark nearby police stations.   
+ 
+ ***  
+ 
+ **For more information please check our Wiki page!**
