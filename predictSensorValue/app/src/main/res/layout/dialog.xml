@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="15dp"
-        android:textSize="15dp"
+        android:textSize="20dp"
         android:text="곧 문자가 자동으로 전송됩니다." />
 
     <LinearLayout
@@ -23,7 +23,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_margin="5dp"
-            android:text="예" />
+            android:text="확인"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/dialog_yes_button_shape" />
 
         <Button
             android:id="@+id/noBtn"
@@ -31,7 +35,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_margin="5dp"
-            android:text="아니오" />
+            android:text="취소"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/dialog_no_button_shape" />
 
     </LinearLayout>
 

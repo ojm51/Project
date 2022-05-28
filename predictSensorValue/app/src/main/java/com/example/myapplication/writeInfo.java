@@ -79,7 +79,7 @@ public class writeInfo extends AppCompatActivity {
             uploader(newInfo, writer);
         }
         else{
-            Toast.makeText(getApplicationContext(), "정보 작성에 실패하였습니다.\n모든 정보란을 작성해주세요", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "정보 작성에 실패하였습니다.\n모든 정보란을 작성해주세요!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -90,14 +90,14 @@ public class writeInfo extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(), "정보 작성 완료", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "정보가 저장되었습니다!", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "정보 작성 실패", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "정보 작성에 실패하였습니다.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

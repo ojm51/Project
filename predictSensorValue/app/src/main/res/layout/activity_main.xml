@@ -32,13 +32,14 @@
         android:id="@+id/police_station"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/button"
+        android:layout_margin="7dp"
+        android:drawableLeft="@drawable/police_station_button"
         android:text="경찰서"
-        android:textColor="@color/black"
-        android:layout_margin="5dp"
-        app:backgroundTint="#CDDC39"
+        android:textStyle="bold"
+        android:textColor="@color/white"
         app:layout_constraintRight_toRightOf="@+id/map"
-        app:layout_constraintTop_toTopOf="@+id/map" />
+        app:layout_constraintTop_toTopOf="@+id/map"
+        android:background="@drawable/police_button_shape" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"

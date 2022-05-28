@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:drawable="@drawable/police_black_24"
+        android:drawable="@drawable/police_white_24"
         android:width="20dp"
-        android:height="20dp" />
+        android:height="20dp"
+        />
 </layer-list>
 

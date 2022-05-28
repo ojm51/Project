@@ -4,16 +4,19 @@
     <item
         android:id="@+id/navigation_detection"
         android:icon="@drawable/run_black_24"
-        android:title="감지 시작" />
+        android:title="감지 시작"
+        android:textStyle="bold"/>
 
     <item
         android:id="@+id/navigation_call"
         android:icon="@drawable/phone_black_24"
-        android:title="112 신고" />
+        android:title="112 신고"
+        android:textStyle="bold" />
 
     <item
         android:id="@+id/navigation_info"
         android:icon="@drawable/badge_black_24"
-        android:title="개인 정보" />
+        android:title="개인 정보"
+        android:textStyle="bold" />
 
 </menu>
