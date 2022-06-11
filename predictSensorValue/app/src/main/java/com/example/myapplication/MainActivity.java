@@ -521,8 +521,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     boolean is_anormal = false;
 
+                    float[] thres = new float[]{(float)8.8811,(float)4.3594,(float)1.8163,(float)2.9902,(float)2.4207,(float)4.574};
                     for(int i=0; i<6; i++){
-                        if(total[i]/40 > 0.1){ //임시 threshold
+                        if(total[i]/40 > thres[i]){ //각 센서별 threshold
                             is_anormal = true;
                             break;
                         }
