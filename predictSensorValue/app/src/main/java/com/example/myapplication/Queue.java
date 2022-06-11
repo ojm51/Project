@@ -24,4 +24,6 @@ public class Queue {
     public float min(){
         return Collections.min(arrayQueue);
     }
+
+    public float get(int index) {return arrayQueue.get(index); }
 }

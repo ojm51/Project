@@ -34,7 +34,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -74,8 +73,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.Place;
@@ -96,12 +93,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Queue gxque;
     private Queue gyque;
     private Queue gzque;
-//    private KalmanFilter mKalmanAccX;
-//    private KalmanFilter mKalmanAccY;
-//    private KalmanFilter mKalmanAccZ;
-//    private KalmanFilter mKalmanGyroX;
-//    private KalmanFilter mKalmanGyroY;
-//    private KalmanFilter mKalmanGyroZ;
+    private KalmanFilter mKalmanAccX;
+    private KalmanFilter mKalmanAccY;
+    private KalmanFilter mKalmanAccZ;
+    private KalmanFilter mKalmanGyroX;
+    private KalmanFilter mKalmanGyroY;
+    private KalmanFilter mKalmanGyroZ;
 
     private int num = 0;
     private String phoneNumber;
@@ -114,12 +111,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float gx = (float) 0.0;
     float gy = (float) 0.0;
     float gz = (float) 0.0;
-//    float Kalax = (float) 0.0;
-//    float Kalay = (float) 0.0;
-//    float Kalaz = (float) 0.0;
-//    float Kalgx = (float) 0.0;
-//    float Kalgy = (float) 0.0;
-//    float Kalgz = (float) 0.0;
+    float Kalax = (float) 0.0;
+    float Kalay = (float) 0.0;
+    float Kalaz = (float) 0.0;
+    float Kalgx = (float) 0.0;
+    float Kalgy = (float) 0.0;
+    float Kalgz = (float) 0.0;
 
     int hasSMSPermission;
     int hasFineLocationPermission;
@@ -136,7 +133,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Marker currentMarker = null;
     List<Marker> previous_marker = null;
 
-    int police_marker = 0;
     String address;
     Location mCurrentLocation;
     LatLng currentPosition;
@@ -164,12 +160,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
         hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
 
-//        mKalmanAccX=new KalmanFilter(0.0f);
-//        mKalmanAccY=new KalmanFilter(0.0f);
-//        mKalmanAccZ=new KalmanFilter(0.0f);
-//        mKalmanGyroX=new KalmanFilter(0.0f);
-//        mKalmanGyroY=new KalmanFilter(0.0f);
-//        mKalmanGyroZ=new KalmanFilter(0.0f);
+        mKalmanAccX=new KalmanFilter(0.0f);
+        mKalmanAccY=new KalmanFilter(0.0f);
+        mKalmanAccZ=new KalmanFilter(0.0f);
+        mKalmanGyroX=new KalmanFilter(0.0f);
+        mKalmanGyroY=new KalmanFilter(0.0f);
+        mKalmanGyroZ=new KalmanFilter(0.0f);
 
         axque=new Queue();
         ayque=new Queue();
@@ -195,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
 
-        // 이상탐지 시작 확인 창
+        //이상탐지 시작 확인 창
         dialog2=new Dialog(MainActivity.this);
         dialog2.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog2.setContentView(R.layout.dialog2);
@@ -218,6 +214,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
+//        Button location = (Button) findViewById(R.id.location);
+//        location.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
+//            }
+//        });
+
         // 마지막으로 알려진 사용자 위치 가져오기
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
@@ -236,16 +240,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(police_marker == 0){     // 경찰서 위치 버튼을 누르지 않은 상태였다면
-                    police_marker = 1;
-                    showPlaceInformation(currentPosition);
-                }
-                else if(police_marker == 1){     // 경찰서 위치 버튼을 누른 상태였다면
-                    police_marker = 0;
-                    mMap.clear();   //지도 클리어
-                    if (previous_marker != null)
-                        previous_marker.clear();    //지역정보 마커 클리어
-                }
+                showPlaceInformation(currentPosition);
             }
         });
     }
@@ -293,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
-    // 주변의 특정 건물(경찰서) 찾기
+    // 주변의 특정 건물 찾기
     @Override
     public void onPlacesFailure(PlacesException e) {
 
@@ -318,7 +313,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(markerSnippet);
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));     // 마커 색상(색상환표 참고, 0~360)
                     Marker item = mMap.addMarker(markerOptions);
                     previous_marker.add(item);
                 }
@@ -328,11 +322,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 hashSet.addAll(previous_marker);
                 previous_marker.clear();
                 previous_marker.addAll(hashSet);
+
             }
         });
     }
 
-    public void showPlaceInformation(LatLng location) {
+    public void showPlaceInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
         new NRPlaces.Builder()
                 .listener(MainActivity.this)
                 .key("AIzaSyBfl2h0siwrjJfLfyuhbtixLDYsOA3z5qA")
@@ -347,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onPlacesFinished() {
 
     }
-    // 주변의 특정 건물(경찰서) 찾기 - 끝
+    // 주변의 특정 건물 찾기 - 여기까지
 
     class TabSelected implements NavigationBarView.OnItemSelectedListener {
         @SuppressLint("NonConstantResourceId")
@@ -356,18 +357,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
                     if(sensoron==0){
-                        sensoron=1;
-                        item.setTitle("감지 중지");
-                        item.setIcon(R.drawable.normal_black_24);
-                        showDialog2();
-                    }
+                    sensoron=1;
+                    item.setTitle("감지 중지");
+                    item.setIcon(R.drawable.normal_black_24);
+                    showDialog2();
+                    return true;}
+
                     else{
                         sensoron=0;
                         num=0;
                         item.setTitle("감지 시작");
                         item.setIcon(R.drawable.run_black_24);
+                        return true;
                     }
-                    return true;
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
@@ -424,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         myInfo info = documentSnapshot.toObject(myInfo.class);
                         phoneNumber = info.getParentPhone();
                     }catch (Exception e){
-                        Toast.makeText(MainActivity.this, "정보를 먼저 입력을 해주세요.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "정보 입력을 해주세요", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -439,15 +441,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (sensoron == 1) {
+        if(sensoron==1) {
             if (event.sensor == linearSensor && num > 160) {
                 ax = event.values[0];
                 ay = event.values[1];
                 az = event.values[2];
 
-//                Kalax = (float) mKalmanAccX.update(ax);
-//                Kalay = (float) mKalmanAccY.update(ay);
-//                Kalaz = (float) mKalmanAccZ.update(az);
+                Kalax = (float) mKalmanAccX.update(ax);
+                Kalay = (float) mKalmanAccY.update(ay);
+                Kalaz = (float) mKalmanAccZ.update(az);
             }
 
             if (event.sensor == gyroSensor && num > 160) {
@@ -458,9 +460,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gy = (float) gyroY;
                 gz = (float) gyroZ;
 
-//                Kalgx = (float) mKalmanGyroX.update(gx);
-//                Kalgy = (float) mKalmanGyroY.update(gy);
-//                Kalgz = (float) mKalmanGyroZ.update(gz);
+                Kalgx = (float) mKalmanGyroX.update(gx);
+                Kalgy = (float) mKalmanGyroY.update(gy);
+                Kalgz = (float) mKalmanGyroZ.update(gz);
 
                 axque.enqueue(ax);
                 ayque.enqueue(ay);
@@ -470,50 +472,79 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gzque.enqueue(gz);
 
                 if (axque.size() > 40) {
-                    axque.dequeue();
-                    ayque.dequeue();
-                    azque.dequeue();
-                    gxque.dequeue();
-                    gyque.dequeue();
-                    gzque.dequeue();
-                }
-
-
-                float[][][] input = new float[][][]{{{}}};
-                float[][][] output = new float[][][]{{{(float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0, (float) 0.0}}};
-
-                Interpreter tflite = getTfliteInterpreter("tensorModel_211211.tflite");
-                assert tflite != null;
-                tflite.run(input, output);
-
-                float max = output[0][0][0];
-                int activity = (int) 0;
-                String[] activities = new String[]{"Sit", "Stand", "Walk", "Run", "StairUp", "StrDown", "abnormal"};
-
-                for (int i = 0; i < output[0][0].length; i++) {
-                    if (output[0][0][i] > max) {
-                        max = output[0][0][i];
-                        activity = i;
+                    for(int i=0; i<21; i++){
+                        axque.dequeue();
+                        ayque.dequeue();
+                        azque.dequeue();
+                        gxque.dequeue();
+                        gyque.dequeue();
+                        gzque.dequeue();
                     }
                 }
-                if (activities[activity].equals("abnormal")) {
-                    if (!dialog.isShowing()) {
-                        showDialog();
-                        sending = 0;
+
+                if (axque.size() == 40) {
+                    float[][][] input = new float[1][40][6];
+                    float[][][] output = new float[1][40][6];
+
+                    for(int i=0; i<40; i++){
+                        input[0][i][0] = axque.get(i);
+                        input[0][i][1] = ayque.get(i);
+                        input[0][i][2] = azque.get(i);
+                        input[0][i][3] = gxque.get(i);
+                        input[0][i][4] = gyque.get(i);
+                        input[0][i][5] = gzque.get(i);
+
+                        output[0][i][0] = (float) 0.0;
+                        output[0][i][1] = (float) 0.0;
+                        output[0][i][2] = (float) 0.0;
+                        output[0][i][3] = (float) 0.0;
+                        output[0][i][4] = (float) 0.0;
+                        output[0][i][5] = (float) 0.0;
+
+                        System.out.println("THE AXQUE VALUE"+output[0][0][0]);
+                    }
+
+                    try {
+                        Interpreter tflite = getTfliteInterpreter("tensorModel_220611.tflite");
+                        tflite.run(input, output);
+                    }
+                    catch (Exception e){
+
+                    }
+
+                    float[] total = new float[]{(float)0.0,(float)0.0,(float)0.0,(float)0.0,(float)0.0,(float)0.0};
+                    for(int i=0; i<40; i++){
+                        for(int j=0; j<6; j++){
+                            total[j] += Math.pow((input[0][i][j]-output[0][i][j]), 2);
+                        }
+                    }
+
+                    boolean is_anormal = false;
+
+                    for(int i=0; i<6; i++){
+                        if(total[i]/40 > 0.1){ //임시 threshold
+                            is_anormal = true;
+                            break;
+                        }
+                    }
+
+                    if (is_anormal) {
+                        if (dialog.isShowing() == false) {
+                            showDialog();
+                            sending = 0;
+                        }
                     }
                 }
             }
             num = num + 1;
         }
-
     }
 
-    // 메시지 전송 Dialog popup
-    public void showDialog(){
+    // Dialog popup
+    public  void showDialog(){
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
         dialog.show();
-        countDown_dialog();
 
         // 아니오 버튼
         Button noBtn = dialog.findViewById(R.id.noBtn);
@@ -523,23 +554,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 // 원하는 기능 구현
                 sending=1;
                 dialog.dismiss();
-                timer.cancel();
-                Log.i("timerStop", "Timer stop");
             }
         });
-
         // 네 버튼
         dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sending=0;
                 dialog.dismiss();
-                timer.cancel();
-                Log.i("timerStop", "Timer stop");
             }
         });
         dHandler.postDelayed(dRunnable, 5000);
-        // 메시지 전송
+
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
@@ -563,38 +589,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    // Dialog: n초 후 문자 전송 카운트 다운
-    Timer timer = new Timer();
-    private TextView countDown_txt;
-    private int timer_sec;
-    public void countDown_dialog() {
-        countDown_txt = (TextView) dialog.findViewById(R.id.countDown_txt);
-        timer_sec = 10;
-
-        TimerTask second = new TimerTask() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i("countDown", "Timer start");
-                        countDown_txt.setText(timer_sec + "초 후에 문자가 자동으로 전송됩니다.\n문자를 전송하지 않으려면 '아니오'를 눌러주세요.");
-                        timer_sec--;
-                    }
-                });
-
-                if(timer_sec == 0){
-                    dialog.dismiss();
-                    cancel();
-                    Log.i("timerStop", "Timer stop");
-                }
-            }
-        };
-        timer.schedule(second, 0, 1000);
-    }
-
-    // Dialog delay
+    //Dialog delay
     private Runnable dRunnable=new Runnable() {
         @Override
         public void run() {
@@ -603,47 +598,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     };
 
 
-    public void showDialog2(){
+    public  void showDialog2(){
         dialog2.show();
-        countDown_dialog2();
-
         // 네 버튼
         dialog2.findViewById(R.id.confirm).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialog2.dismiss();
-                timer.cancel();
-                Log.i("timerStop2", "Timer stop2");
             }
         });
-    }
-
-    // Dialog2: n초 후 감지 시작 카운트 다운
-    public void countDown_dialog2() {
-        countDown_txt = (TextView) dialog2.findViewById(R.id.countDown2_txt);
-        timer_sec = 5;
-
-        TimerTask second = new TimerTask() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i("countDown2", "Timer start2");
-                        countDown_txt.setText(timer_sec + "초 후 감지가 시작됩니다.\n스마트폰을 지정된 위치에 넣어주세요.");
-                        timer_sec--;
-                    }
-                });
-
-                if(timer_sec == 0){
-                    dialog2.dismiss();
-                    cancel();
-                    Log.i("timerStop2", "Timer stop2");
-                }
-            }
-        };
-        timer.schedule(second, 0, 1000);
     }
 
     @Override
