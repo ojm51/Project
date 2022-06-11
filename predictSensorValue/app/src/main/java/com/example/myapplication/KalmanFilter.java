@@ -1,7 +1,7 @@
 package com.example.myapplication;
 
 public class KalmanFilter {
-    private double Q = 0.00001;
+    private double Q = 0.001;
     private double R = 0.001;
     private double X = 0, P = 1, K;
 

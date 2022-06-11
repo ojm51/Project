@@ -448,8 +448,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 az = event.values[2];
 
                 Kalax = (float) mKalmanAccX.update(ax);
+                Kalax= (float) (Kalax-0.059197199/2.428037065);
                 Kalay = (float) mKalmanAccY.update(ay);
+                Kalay= (float) (Kalay-0.519620938/3.284556177);
                 Kalaz = (float) mKalmanAccZ.update(az);
+                Kalaz= (float) (Kalaz+0.14021716/3.726056434);
             }
 
             if (event.sensor == gyroSensor && num > 160) {
@@ -461,15 +464,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gz = (float) gyroZ;
 
                 Kalgx = (float) mKalmanGyroX.update(gx);
+                Kalgx= (float) (Kalgx+0.00112573614/1.449264307);
                 Kalgy = (float) mKalmanGyroY.update(gy);
+                Kalgy= (float) (Kalgy+0.0140877585/1.126828731);
                 Kalgz = (float) mKalmanGyroZ.update(gz);
+                Kalgz= (float) (Kalgz-0.0366454996/0.583899494);
 
-                axque.enqueue(ax);
-                ayque.enqueue(ay);
-                azque.enqueue(az);
-                gxque.enqueue(gx);
-                gyque.enqueue(gy);
-                gzque.enqueue(gz);
+                axque.enqueue(Kalax);
+                ayque.enqueue(Kalay);
+                azque.enqueue(Kalaz);
+                gxque.enqueue(Kalgx);
+                gyque.enqueue(Kalgy);
+                gzque.enqueue(Kalgz);
 
                 if (axque.size() > 40) {
                     for(int i=0; i<21; i++){
@@ -521,9 +527,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     boolean is_anormal = false;
 
-                    float[] thres = new float[]{(float)8.8811,(float)4.3594,(float)1.8163,(float)2.9902,(float)2.4207,(float)4.574};
                     for(int i=0; i<6; i++){
-                        if(total[i]/40 > thres[i]){ //각 센서별 threshold
+                        if(total[i]/40 > 10){ //임시 threshold
                             is_anormal = true;
                             break;
                         }
