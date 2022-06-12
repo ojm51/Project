@@ -615,10 +615,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // Dialog: n초 후 문자 전송 카운트 다운
-    Timer timer = new Timer();
+    Timer timer;
     private TextView countDown_txt;
     private int timer_sec;
     public void countDown_dialog() {
+        timer=new Timer();
         countDown_txt = (TextView) dialog.findViewById(R.id.countDown_txt);
         timer_sec = 10;
 
@@ -678,6 +679,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Dialog2: n초 후 감지 시작 카운트 다운
     public void countDown_dialog2() {
+        timer=new Timer();
         countDown_txt = (TextView) dialog2.findViewById(R.id.countDown2_txt);
         timer_sec = 5;
 
