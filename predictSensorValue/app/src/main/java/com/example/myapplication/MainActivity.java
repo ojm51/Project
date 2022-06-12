@@ -528,11 +528,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     float[] thres = new float[]{(float)8.8811,(float)4.3594,(float)1.8163,(float)2.9902,(float)2.4207,(float)4.574};
 
+                    float totalval = 0;
+                    float thresval = 0;
                     for(int i=0; i<6; i++){
-                        if(total[i]/40 > thres[i]){ //threshold
-                            is_anormal = true;
-                            break;
-                        }
+                        totalval=totalval+total[i]/40;
+                        thresval=thresval+thres[i];
+                    }
+
+                    if(totalval/6 > thresval/6){ //threshold
+                        is_anormal = true;
                     }
 
                     if (is_anormal) {
