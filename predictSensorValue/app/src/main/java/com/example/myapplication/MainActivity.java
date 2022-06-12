@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -73,6 +74,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.Place;
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private int num = 0;
     private String phoneNumber;
+    private String writerName;
     private int sending=0;
     private int sensoron=0;
 
@@ -133,7 +137,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Marker currentMarker = null;
     List<Marker> previous_marker = null;
 
+    int police_marker = 0;
     String address;
+    String message1;
+    String message2;
     Location mCurrentLocation;
     LatLng currentPosition;
 
@@ -191,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         dialog.setContentView(R.layout.dialog);
         dHandler=new Handler();
 
-        //이상탐지 시작 확인 창
+        // 이상탐지 시작 확인 창
         dialog2=new Dialog(MainActivity.this);
         dialog2.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog2.setContentView(R.layout.dialog2);
@@ -214,14 +221,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
-//        Button location = (Button) findViewById(R.id.location);
-//        location.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                // location누르면 현위치 마커 찍어주고, real_time누르면 실시간으로 움직이게?
-//            }
-//        });
-
         // 마지막으로 알려진 사용자 위치 가져오기
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
@@ -240,7 +239,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPlaceInformation(currentPosition);
+                if(police_marker == 0){     // 경찰서 위치 버튼을 누르지 않은 상태였다면
+                    police_marker = 1;
+                    showPlaceInformation(currentPosition);
+                }
+                else if(police_marker == 1){     // 경찰서 위치 버튼을 누른 상태였다면
+                    police_marker = 0;
+                    mMap.clear();   //지도 클리어
+                    if (previous_marker != null)
+                        previous_marker.clear();    //지역정보 마커 클리어
+                }
             }
         });
     }
@@ -288,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
-    // 주변의 특정 건물 찾기
+    // 주변의 특정 건물(경찰서) 찾기
     @Override
     public void onPlacesFailure(PlacesException e) {
 
@@ -312,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     MarkerOptions markerOptions = new MarkerOptions();
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
-                    markerOptions.snippet(markerSnippet);
+                    markerOptions.snippet(markerSnippet);markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));     // 마커 색상(색상환표 참고, 0~360)    // 마커 색상 0~360
                     Marker item = mMap.addMarker(markerOptions);
                     previous_marker.add(item);
                 }
@@ -327,13 +335,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    public void showPlaceInformation(LatLng location)
-    {
-        mMap.clear();//지도 클리어
-
-        if (previous_marker != null)
-            previous_marker.clear();//지역정보 마커 클리어
-
+    public void showPlaceInformation(LatLng location) {
         new NRPlaces.Builder()
                 .listener(MainActivity.this)
                 .key("AIzaSyBfl2h0siwrjJfLfyuhbtixLDYsOA3z5qA")
@@ -348,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onPlacesFinished() {
 
     }
-    // 주변의 특정 건물 찾기 - 여기까지
+    // 주변의 특정 건물(경찰서) 찾기 - 끝
 
     class TabSelected implements NavigationBarView.OnItemSelectedListener {
         @SuppressLint("NonConstantResourceId")
@@ -357,18 +359,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
                     if(sensoron==0){
-                    item.setTitle("감지 중지");
-                    item.setIcon(R.drawable.normal_black_24);
-                    showDialog2();
-                    return true;}
+                        item.setTitle("감지 중지");
+                        item.setIcon(R.drawable.normal_black_24);
+                        showDialog2();
+                    }
 
                     else{
                         sensoron=0;
                         num=0;
                         item.setTitle("감지 시작");
                         item.setIcon(R.drawable.run_black_24);
-                        return true;
                     }
+                    return true;
                 }
                 case R.id.navigation_call:{
                     // 112 신고(전화)
@@ -424,9 +426,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     try {
                         myInfo info = documentSnapshot.toObject(myInfo.class);
                         phoneNumber = info.getParentPhone();
+                        writerName = info.getWriterName();
                     }catch (Exception e){
-                        Toast.makeText(MainActivity.this, "정보 입력을 해주세요", Toast.LENGTH_SHORT).show();
-                    }
+                        Toast.makeText(MainActivity.this, "정보를 먼저 입력을 해주세요.", Toast.LENGTH_LONG).show();                    }
                 }
             });
         }
@@ -540,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
 
                     if (is_anormal) {
-                        if (dialog.isShowing() == false) {
+                        if (!dialog.isShowing()) {
                             sensoron=0;
                             showDialog();
                             sending = 0;
@@ -552,11 +554,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    // Dialog popup
-    public  void showDialog(){
+    // 메시지 전송 Dialog popup
+    public void showDialog(){
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
         dialog.show();
+        countDown_dialog();
 
         // 아니오 버튼
         Button noBtn = dialog.findViewById(R.id.noBtn);
@@ -566,19 +569,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 // 원하는 기능 구현
                 sending=1;
                 dialog.dismiss();
+                timer.cancel();
+                Log.i("timerStop", "Timer stop");
             }
         });
+
         // 네 버튼
         dialog.findViewById(R.id.yesBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sending=0;
                 dialog.dismiss();
+                timer.cancel();
+                Log.i("timerStop", "Timer stop");
             }
         });
         dHandler.postDelayed(dRunnable, 10000);
 
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        // 메시지 전송
+       dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 if(sending==0) {
@@ -587,13 +596,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     double longitude = gpsTracker.getLongitude();
 
                     address = getCurrentAddress(latitude, longitude);
+                    message1 = writerName+" 님의 위급상황 감지! \n* 본 메시지는 SafeRoad 앱에서 자동으로 전송되었습니다";
+                    message2 = writerName+" 님의 위치: "+address;
 
                     try {
                         SmsManager smsManager = SmsManager.getDefault();
-                        smsManager.sendTextMessage(phoneNumber, null, address, null, null);
-                        Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_SHORT).show();
+                        smsManager.sendTextMessage(phoneNumber, null, message1, null, null);
+                        smsManager.sendTextMessage(phoneNumber, null, message2, null, null);
+                        Toast.makeText(getApplicationContext(), "메시지 전송 완료", Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
-                        Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "메시지 전송 실패", Toast.LENGTH_LONG).show();
                         e.printStackTrace();
                     }
                 }
@@ -602,7 +614,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    //Dialog delay
+    // Dialog: n초 후 문자 전송 카운트 다운
+    Timer timer = new Timer();
+    private TextView countDown_txt;
+    private int timer_sec;
+    public void countDown_dialog() {
+        countDown_txt = (TextView) dialog.findViewById(R.id.countDown_txt);
+        timer_sec = 10;
+
+        TimerTask second = new TimerTask() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i("countDown", "Timer start");
+                        countDown_txt.setText(timer_sec + "초 후에 문자가 자동으로 전송됩니다.\n\n문자를 전송하지 않으려면 '취소'를 눌러주세요.");
+                        timer_sec--;
+                    }
+                });
+
+                if(timer_sec == 0){
+                    dialog.dismiss();
+                    cancel();
+                    Log.i("timerStop", "Timer stop");
+                }
+            }
+        };
+        timer.schedule(second, 0, 1000);
+    }
+
+    // Dialog delay
     private Runnable dRunnable=new Runnable() {
         @Override
         public void run() {
@@ -610,15 +653,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
-
-    public  void showDialog2(){
+    public void showDialog2(){
         dialog2.show();
+        countDown_dialog2();
+
         // 네 버튼
         dialog2.findViewById(R.id.confirm).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialog2.dismiss();
                 sensoron=1;
+                timer.cancel();
+                Log.i("timerStop2", "Timer stop2");
             }
         });
 
@@ -628,6 +674,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 sensoron=1;
             }
         });
+    }
+
+    // Dialog2: n초 후 감지 시작 카운트 다운
+    public void countDown_dialog2() {
+        countDown_txt = (TextView) dialog2.findViewById(R.id.countDown2_txt);
+        timer_sec = 5;
+
+        TimerTask second = new TimerTask() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i("countDown2", "Timer start2");
+                        countDown_txt.setText(timer_sec + "초 후 감지가 시작됩니다.\n\n스마트폰을 지정된 위치에 넣어주세요.");
+                        timer_sec--;
+                    }
+                });
+
+                if(timer_sec == 0){
+                    dialog2.dismiss();
+                    cancel();
+                    Log.i("timerStop2", "Timer stop2");
+                }
+            }
+        };
+        timer.schedule(second, 0, 1000);
     }
 
     @Override
@@ -788,7 +862,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 앱을 재실행하여 권한을 허용해주세요.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
-                    Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 설정(앱 정보)에서 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "권한이 거부되었습니다. 설정에서 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -805,7 +879,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         else {  // 퍼미션 요청이 허용되지 않았다면
             // i) 사용자가 과거에 퍼미션 거부를 한 적이 있는 경우, 퍼미션을 다시 요청. 요청 결과는 onRequestPermissionResult에서 수신됨.
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, REQUIRED_PERMISSIONS[0])) {
-                Toast.makeText(MainActivity.this, "설정(앱 정보)에서 위치 및 SMS 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "설정에서 위치 및 SMS 권한을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
             }
             // ii) 사용자가 퍼미션 거부를 한 적이 없는 경우, 바로 퍼미션 요청
             ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE);
