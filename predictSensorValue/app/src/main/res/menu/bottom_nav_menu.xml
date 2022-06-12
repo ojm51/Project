@@ -10,7 +10,7 @@
     <item
         android:id="@+id/navigation_call"
         android:icon="@drawable/phone_black_24"
-        android:title="112 신고"
+        android:title="연락하기"
         android:textStyle="bold" />
 
     <item
