@@ -546,6 +546,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             sensoron=0;
                             showDialog();
                             sending = 0;
+                            num=0;
+                            for(int i=0; i<41; i++){
+                                axque.dequeue();
+                                ayque.dequeue();
+                                azque.dequeue();
+                                gxque.dequeue();
+                                gyque.dequeue();
+                                gzque.dequeue();
+                            }
                         }
                     }
                 }
