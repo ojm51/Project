@@ -357,7 +357,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             switch ((item.getItemId())){
                 case R.id.navigation_detection:{
                     if(sensoron==0){
-                    sensoron=1;
                     item.setTitle("감지 중지");
                     item.setIcon(R.drawable.normal_black_24);
                     showDialog2();
@@ -530,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     float[] thres = new float[]{(float)8.8811,(float)4.3594,(float)1.8163,(float)2.9902,(float)2.4207,(float)4.574};
 
                     for(int i=0; i<6; i++){
-                        if(total[i]/40 > thres[i]){ //임시 threshold
+                        if(total[i]/40 > thres[i]){ //threshold
                             is_anormal = true;
                             break;
                         }
@@ -538,6 +537,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     if (is_anormal) {
                         if (dialog.isShowing() == false) {
+                            sensoron=0;
                             showDialog();
                             sending = 0;
                         }
@@ -572,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 dialog.dismiss();
             }
         });
-        dHandler.postDelayed(dRunnable, 5000);
+        dHandler.postDelayed(dRunnable, 10000);
 
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -593,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         e.printStackTrace();
                     }
                 }
+                sensoron=1;
             }
         });
     }
@@ -613,6 +614,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 dialog2.dismiss();
+                sensoron=1;
+            }
+        });
+
+        dialog2.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                sensoron=1;
             }
         });
     }
