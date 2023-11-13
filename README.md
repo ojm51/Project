@@ -24,4 +24,4 @@ SafeRoad is an application that detects user's abnormal behavior using sensors o
  
  ***  
  
- **For more information please check our Wiki page!**
+ **For more information please check our [Wiki pages](https://github.com/ojm51/GraduationProject/wiki)!**
