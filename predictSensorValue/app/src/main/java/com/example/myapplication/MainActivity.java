@@ -338,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void showPlaceInformation(LatLng location) {
         new NRPlaces.Builder()
                 .listener(MainActivity.this)
-                .key("AIzaSyBfl2h0siwrjJfLfyuhbtixLDYsOA3z5qA")
+                .key("")
                 .latlng(location.latitude, location.longitude)//현재 위치
                 .radius(1500) //1500 미터 내에서 검색
                 .type(PlaceType.POLICE) //경찰서
